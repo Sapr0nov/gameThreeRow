@@ -1,0 +1,34 @@
+@font-face {
+    font-family: 'Arial Black';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Arial Black'), local('ArialBlack-Regular'),
+        url(fonts/arial-black/arial-black.woff) format('woff'),
+        url(fonts/arial-black/arial-black.ttf) format('truetype');
+}
+* {
+    padding: 0px;
+    margin: 0px;
+    border: 0px;
+}
+:root {
+    --gpRed: #d90e16;
+}
+.wrap {
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+    background-color: #000000cc;
+}
+
+.wrap canvas{
+    display: block;
+    margin: auto;
+}
+@media screen and (max-width: 800px) {
+    .pleaseReturn {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+}
