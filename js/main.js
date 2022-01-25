@@ -126,9 +126,13 @@ class gameScene extends Phaser.Scene
         if (lines.length > 0) {
             this.collapse(lines);
             this.dropped();
+
+            while (this.checkMatches()) {
+                console.log("again");
+            }
+
             return true;
         }
-
         return false;
     }
 
@@ -171,7 +175,6 @@ class gameScene extends Phaser.Scene
 
     makeSwap(element1, element2, force = 0) {
         //try
-        console.log(element1, element2);
         let tmp = this.matrix[element2.row][element2.col].key;
         this.matrix[element2.row][element2.col].key = this.matrix[element1.row][element1.col].key; 
         this.matrix[element1.row][element1.col].key = tmp; 
