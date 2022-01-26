@@ -6,11 +6,29 @@ document.addEventListener("DOMContentLoaded", function(e) {
 
 
 function init() {
+    const width = document.body.clientWidth;
+    const height = document.body.clientHeight;
+    let widthCanvas, heightCanvas;
+    
+    widthCanvas = width;
+    heightCanvas = Math.floor(width * 5 / 7);
+    
+    if (width > 800) {  
+        widthCanvas = 800;
+        heightCanvas = 800 * 5 / 7;
+    }
+
+    if (height > width) {
+        heightCanvas = height;
+    }
+    
     const config = {
         type: Phaser.AUTO,
         parent: 'gameBox',
-        width: 800,
-        height: 600,
+        width: widthCanvas,
+        height: heightCanvas,
+        hideBanner: true,
+        hidePhaser: true,
         scene: [ gameScene ]
     };
 
@@ -25,13 +43,27 @@ class gameScene extends Phaser.Scene
     }
 
     preload () {
+        let width = this.game.canvas.width;
+        let height = this.game.canvas.height;
 
         this.load.atlas('gems', './img/gems.png', './img/gems.json');
+        this.load.atlas('energy', './img/energy.png', './img/energy.json');
         this.MaxRow = 5;
         this.MaxCol = 7;
-        this.ofsetX = 180;
-        this.ofsetY = 100;
-        this.step = 70;
+        this.baseSize = 64;
+
+        if (width > height) {
+            width = width / 2;
+        }
+        
+        this.step = width / 9;
+        this.scale = (width / 12) / 60;
+        this.ofsetX = width / 9 * (1.5);
+        this.ofsetY = (width > height) ? 100 : (height - width / 7 * 4);    
+        
+        this.prevtime = new Date().getTime(); 
+        this.deltaTime = 0;
+
         this.matrix = new Array(this.MaxRow);
         for (let i = 0; i < this.MaxRow; i ++){
             this.matrix[i] = new Array(this.MaxCol).fill();
@@ -41,13 +73,17 @@ class gameScene extends Phaser.Scene
     create () {
         this.firstSelBlock;
         this.dropBlocks = [];
+        this.enrgiesBlocks = []
         this.gameScore = 0;
+        
+        this.gameBoard;
 
+        this.energy = this.anims.create({ key: 'energy', delay :0, hideOnComplete: true, frames: this.anims.generateFrameNames('energy', { prefix: 'energy_', end: 15, zeroPad: 4 }), repeat: 0 });
         this.diamond = this.anims.create({ key: 'diamond', frames: this.anims.generateFrameNames('gems', { prefix: 'diamond_', end: 15, zeroPad: 4 }), repeat: -1 });
         this.prism = this.anims.create({ key: 'prism', frames: this.anims.generateFrameNames('gems', { prefix: 'prism_', end: 6, zeroPad: 4 }), repeat: -1 });
         this.ruby = this.anims.create({ key: 'ruby', frames: this.anims.generateFrameNames('gems', { prefix: 'ruby_', end: 6, zeroPad: 4 }), repeat: -1 });
         this.square = this.anims.create({ key: 'square', frames: this.anims.generateFrameNames('gems', { prefix: 'square_', end: 14, zeroPad: 4 }), repeat: -1 });
-        this.animsBlock = [this.diamond, this.prism, this.ruby, this.square];
+        this.animsBlock = [this.diamond, this.prism, this.ruby, this.square]; 
 
         for (let curRow = 0; curRow < this.MaxRow; curRow ++) {
             for (let curCol = 0; curCol < this.MaxCol; curCol ++) {
@@ -58,8 +94,25 @@ class gameScene extends Phaser.Scene
     }
 
     update() {
+
+        this.deltaTime = new Date().getTime() - this.prevtime;
+        this.prevtime += this.deltaTime;
+        
         if (this.dropBlocks.length > 0) {
-            this.dropAimation(this.dropBlocks);
+            this.dropAimation(this.dropBlocks);                
+        } else {
+            while (this.checkMatches()) {
+//                console.log("again");
+            }
+        }
+
+        if (this.enrgiesBlocks.length > 0) {
+            this.enrgiesBlocks.forEach(block => {
+                block.ttl = block.ttl - this.deltaTime;
+                if (block.ttl < 0) {
+                    block.destroy();
+                }
+            })
         }
     }
 
@@ -127,10 +180,6 @@ class gameScene extends Phaser.Scene
             this.collapse(lines);
             this.dropped();
 
-            while (this.checkMatches()) {
-                console.log("again");
-            }
-
             return true;
         }
         return false;
@@ -146,6 +195,11 @@ class gameScene extends Phaser.Scene
         blocks.forEach(line => {
             line.forEach( element => {
                 this.matrix[element.block.row][element.block.col].key = null;
+
+                let block = this.add.sprite(element.block.x, element.block.y, 'energy');
+                block.play(this.energy);
+                block.ttl = 300; 
+                this.enrgiesBlocks.push(block);
                 this.matrix[element.block.row][element.block.col].block.destroy();
             })
         })
@@ -203,7 +257,7 @@ class gameScene extends Phaser.Scene
                 // shift current block
                     this.matrix[curRow + empties][curCol].key = this.matrix[curRow][curCol].key;
                     this.matrix[curRow + empties][curCol].block = this.matrix[curRow][curCol].block;
-                    this.matrix[curRow][curCol].key = null;
+                    this.matrix[curRow][curCol].key = 'energy';
                     this.matrix[curRow + empties][curCol].block.col = curCol;
                     this.matrix[curRow + empties][curCol].block.row = curRow + empties;
 
@@ -241,6 +295,7 @@ class gameScene extends Phaser.Scene
         block.on('pointerdown', () => {
             this.clicked(block);
         })
+        block.setDisplaySize(this.baseSize * this.scale, this.baseSize * this.scale);
         return block;
     }
 
