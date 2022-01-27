@@ -119,6 +119,14 @@
 	"trimmed": true,
 	"spriteSourceSize": {"x":7,"y":18,"w":160,"h":157},
 	"sourceSize": {"w":182,"h":206}
+},
+"energy_0015":
+{
+	"frame": {"x":537,"y":349,"w":160,"h":157},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":7,"y":18,"w":160,"h":157},
+	"sourceSize": {"w":182,"h":206}
 }},
 "meta": {
 	"image": "energy",
