@@ -24,6 +24,7 @@
 .wrap canvas{
     display: block;
     margin: auto;
+    cursor: none;
 }
 @media screen and (max-width: 800px) {
     .pleaseReturn {

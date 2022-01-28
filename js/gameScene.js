@@ -1,7 +1,7 @@
 export default class gameScene extends Phaser.Scene
 {
     constructor () {
-        super();
+        super({key: 'gameScene'});
     }
 
     preload () {
@@ -10,6 +10,7 @@ export default class gameScene extends Phaser.Scene
 
         this.load.atlas('gems', './img/gems.png', './img/gems.json');
         this.load.atlas('energy', './img/energy.png', './img/energy.json');
+        this.cursor = this.add.image( this.input.mousePointer.x, this.input.mousePointer.t,'cursor');
 
         this.MaxRow = 5;
         this.MaxCol = 7;
@@ -43,12 +44,11 @@ export default class gameScene extends Phaser.Scene
         this.gameScore = 0;
         
         this.input.keyboard.on('keydown', (e) => {
-
             if (e.key === 't') {
                 this.test();
             }
-
-
+            if (e.key === 'q') {
+            }
         });
 
         this.energy = this.anims.create({ key: 'energy', delay :0, hideOnComplete: true, frames: this.anims.generateFrameNames('energy', { prefix: 'energy_', end: 15, zeroPad: 4 }), repeat: 0 });
@@ -58,14 +58,18 @@ export default class gameScene extends Phaser.Scene
         this.square = this.anims.create({ key: 'square', frames: this.anims.generateFrameNames('gems', { prefix: 'square_', end: 14, zeroPad: 4 }), repeat: -1 });
         this.animsBlock = [this.diamond, this.prism, this.ruby, this.square]; 
 
+        this.cursor.setScale(0.1,0.1);        
+        this.cursor.setRotation(-0.9);
+        this.cursor.setDepth(10);
+
         for (let curRow = 0; curRow < this.MaxRow; curRow ++) {
             for (let curCol = 0; curCol < this.MaxCol; curCol ++) {
                 this.matrix[curRow][curCol] = {};
                 [this.matrix[curRow][curCol].block, this.matrix[curRow][curCol].key] = this.newBlock(curRow, curCol);
+                }
             }
-        }
-
-       let lines = this.checkMatches(this.matrix);
+        
+        let lines = this.checkMatches(this.matrix);
         while (lines.length > 0) {
             this.collapse(lines);
             this.spawn();
@@ -74,7 +78,8 @@ export default class gameScene extends Phaser.Scene
     }
 
     update() {
-
+        this.cursor.x = this.input.mousePointer.x;
+        this.cursor.y = this.input.mousePointer.y;
         this.deltaTime = new Date().getTime() - this.prevtime;
         this.prevtime += this.deltaTime;
 
@@ -115,7 +120,7 @@ export default class gameScene extends Phaser.Scene
     }
 
     /* return Array of lines > 3 */
-    checkMatches(matrix) { 
+    checkMatches (matrix) { 
         const lines = [];
         let line, curKey;
         // vertical
@@ -143,6 +148,7 @@ export default class gameScene extends Phaser.Scene
                 }
             }       
         }
+
         // horizontal
         for (let curRow = 0; curRow < this.MaxRow; curRow ++) {
             curKey = matrix[curRow][0].key;
@@ -317,6 +323,7 @@ export default class gameScene extends Phaser.Scene
         })
     }
 
+
     swapAnimation(blocks) {
         blocks.forEach( (block, index) => {
             /* normalize coords */
@@ -341,6 +348,7 @@ export default class gameScene extends Phaser.Scene
         })
     }
 
+
     energyAnimation(blocks) {
         blocks.forEach( (block, index) => {
             block.ttl = block.ttl - this.deltaTime;
@@ -350,6 +358,7 @@ export default class gameScene extends Phaser.Scene
             }
         })
     }
+
 
     copyMatrix(matrix) {
         const result = [];
@@ -362,15 +371,18 @@ export default class gameScene extends Phaser.Scene
         return result;
     }
 
+
     onSwapFinished() {
         this.collapse(this.checkMatches(this.matrix));
     }
+
 
     onDropFinished() {
         if (this.checkMatches(this.matrix)) {
             this.collapse(this.checkMatches(this.matrix));
         }
     }
+
 
     onEnergyFinished() {
         this.spawn();
