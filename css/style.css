@@ -24,8 +24,9 @@
 .wrap canvas{
     display: block;
     margin: auto;
-    cursor: none;
+    cursor: url(../img/cursor.png), default;
 }
+
 @media screen and (max-width: 800px) {
     .pleaseReturn {
         display: block;

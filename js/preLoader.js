@@ -1,7 +1,7 @@
-export default class mainScene extends Phaser.Scene
+export default class preLoader extends Phaser.Scene
 {
     constructor () {
-        super({key: 'mainScene'});
+        super({key: 'preLoader'});
     }
 
     preload () {
@@ -15,8 +15,7 @@ export default class mainScene extends Phaser.Scene
         if (width > height) {
             this.isLandscape = true;
             width = width / 2;
-        }
-        
+        }  
     }
 
     create () {

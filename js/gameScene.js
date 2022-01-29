@@ -4,26 +4,29 @@ export default class gameScene extends Phaser.Scene
         super({key: 'gameScene'});
     }
 
+
     preload () {
         let width = this.game.canvas.width;
         let height = this.game.canvas.height;
 
         this.load.atlas('gems', './img/gems.png', './img/gems.json');
         this.load.atlas('energy', './img/energy.png', './img/energy.json');
-        this.cursor = this.add.image( this.input.mousePointer.x, this.input.mousePointer.t,'cursor');
 
         this.MaxRow = 5;
         this.MaxCol = 7;
         this.baseSize = 64;
+        this.speed = 0.2;
 
         if (width > height) {
             width = width / 2;
+            this.ofsetY = 100;   
+        }else {
+            this.ofsetY  = height - width / 7 * 5 - 50; 
         }
         
-        this.step = width / 9;
-        this.scale = (width / 12) / 60;
-        this.ofsetX = width / 9 * (1.5);
-        this.ofsetY = (width > height) ? 100 : (height - width / 7 * 5);    
+        this.step = width / 7;
+        this.scale = width / 500;
+        this.ofsetX = 10 + this.baseSize * this.scale / 2;
         
         this.prevtime = new Date().getTime(); 
         this.deltaTime = 0;
@@ -33,7 +36,15 @@ export default class gameScene extends Phaser.Scene
         for (let i = 0; i < this.MaxRow; i ++){
             this.matrix[i] = new Array(this.MaxCol).fill();
         }
+
+        this.events.on('transitioncomplete', () => { 
+            this.scene.setVisible(true);
+            this.normalize();
+        });
+        this.scene.setVisible(false);
+
     }
+
 
     create () {
         this.firstSelBlock;
@@ -47,7 +58,8 @@ export default class gameScene extends Phaser.Scene
             if (e.key === 't') {
                 this.test();
             }
-            if (e.key === 'q') {
+            if (e.key === 'n') {
+                this.normalize();
             }
         });
 
@@ -57,10 +69,6 @@ export default class gameScene extends Phaser.Scene
         this.ruby = this.anims.create({ key: 'ruby', frames: this.anims.generateFrameNames('gems', { prefix: 'ruby_', end: 6, zeroPad: 4 }), repeat: -1 });
         this.square = this.anims.create({ key: 'square', frames: this.anims.generateFrameNames('gems', { prefix: 'square_', end: 14, zeroPad: 4 }), repeat: -1 });
         this.animsBlock = [this.diamond, this.prism, this.ruby, this.square]; 
-
-        this.cursor.setScale(0.1,0.1);        
-        this.cursor.setRotation(-0.9);
-        this.cursor.setDepth(10);
 
         for (let curRow = 0; curRow < this.MaxRow; curRow ++) {
             for (let curCol = 0; curCol < this.MaxCol; curCol ++) {
@@ -75,11 +83,11 @@ export default class gameScene extends Phaser.Scene
             this.spawn();
             lines = this.checkMatches(this.matrix);
         }
+        this.normalize();
     }
 
     update() {
-        this.cursor.x = this.input.mousePointer.x;
-        this.cursor.y = this.input.mousePointer.y;
+        
         this.deltaTime = new Date().getTime() - this.prevtime;
         this.prevtime += this.deltaTime;
 
@@ -202,15 +210,7 @@ export default class gameScene extends Phaser.Scene
 
 
     clicked (element) {
-        if (this.isBlocked) return;
-        
-        element.stop();
-
-        if (this.firstSelBlock == null) {     
-            this.firstSelBlock = element;
-            return;
-         // повторный клик на первой фишке    
-         } else if (this.firstSelBlock == element) {   
+        if (this.firstSelBlock == element) {   
             element.play(this.animsBlock[this.matrix[element.row][element.col].key]);
             this.firstSelBlock = null; 
             return;
@@ -240,7 +240,6 @@ export default class gameScene extends Phaser.Scene
 
         if (!this.checkMatches(newMatrix).length ) {
             [el1.returned, el2.returned] = [true, true];
-            [this.matrix[el2.row][el2.col].key, this.matrix[el1.row][el1.col].key] = [this.matrix[el1.row][el1.col].key, this.matrix[el2.row][el2.col].key ];
             [el2.row, el2.col, el1.row, el1.col] = [el1.row, el1.col, el2.row, el2.col];
 
         }else{
@@ -269,7 +268,7 @@ export default class gameScene extends Phaser.Scene
                     elementEmpty.block = elementDonor.block;
                     elementEmpty.block.newY = elementEmpty.block.y + this.step * empties;
                     elementEmpty.block.row = elementDonor.block.row + empties;
-                    elementEmpty.block.dy = empties * 2;
+                    elementEmpty.block.dy = empties * 8;
                     elementDonor.key = null;
                     elementDonor.block = null;
                     this.dropBlocks.push(elementEmpty.block);
@@ -281,7 +280,7 @@ export default class gameScene extends Phaser.Scene
                     let [block, key] = this.newBlock(i, curCol);
                     block.newY = block.y;
                     block.y = block.y - this.step * (i + 2);
-                    block.dy = 1+i;
+                    block.dy = i + 3;
                     this.matrix[i][curCol].block = block;
                     this.matrix[i][curCol].key = key;
                     this.dropBlocks.push(block);
@@ -304,9 +303,48 @@ export default class gameScene extends Phaser.Scene
         block.dx = posCol - curCol;
         block.dy = posRow - curRow;
         block.setInteractive();
-        block.on('pointerdown', () => {
-            this.clicked(block);
+        
+        block.on('pointerdown', (e) => {
+            if (this.isBlocked) return;
+            console.log('start');
+            block.stop();
+            if (this.firstSelBlock == null) {     
+                this.firstSelBlock = block;
+                return;
+             } 
         })
+        
+        block.on('pointerup', (e) => {
+            if (this.isBlocked) return;
+            
+            if (Math.abs((e.upX - e.downX)) < this.step && Math.abs(2*(e.upY - e.downY)) > this.step ) {
+                console.log('horizontal');
+                let nextRow = (e.upX < e.downX) ? this.firstSelBlock.row - 1 : this.firstSelBlock.row + 1;
+                if (nextRow > this.MaxRow) { return; }
+                this.clicked(this.matrix[nextRow][this.firstSelBlock.col].block);
+                return;
+            }
+
+            if (Math.abs((e.upX - e.downX)) > this.step && Math.abs(2*(e.upY - e.downY)) < this.step ) {
+                console.log('vertical');
+                let nextCol = (e.upY < e.downY) ? this.firstSelBlock.col - 1 : this.firstSelBlock.col + 1;
+                if (nextCol > this.MaxRow) { return; }
+                this.clicked(this.matrix[this.firstSelBlock.row][nextCol].block);
+                return;
+            }
+            if (this.firstSelBlock != block) {
+                this.clicked(block);
+            }
+        })
+
+        block.on('pointerover', () => {
+            block.setScale(this.scale + 0.2);
+        })
+        
+        block.on('pointerout', () => {
+            block.setScale(this.scale);
+        })
+        
         block.setDisplaySize(this.baseSize * this.scale, this.baseSize * this.scale);
         return [block, key];
     }
@@ -315,7 +353,7 @@ export default class gameScene extends Phaser.Scene
     dropAnimation(blocks) {
         blocks.forEach( (block, index) => {
             if (block.newY > block.y) {
-                block.y += block.dy;
+                block.y += block.dy * this.deltaTime * this.speed;
             }else{
                 block.y = Math.floor(block.newY);
                 blocks.splice(index,1);
@@ -332,8 +370,8 @@ export default class gameScene extends Phaser.Scene
 
             // motion
             if (block.x * signX < block.newX * signX || block.y * signY < block.newY * signY) {
-                block.x += block.dx;
-                block.y += block.dy;
+                block.x += block.dx * this.deltaTime * this.speed;
+                block.y += block.dy * this.deltaTime * this.speed;
             }else{
               [block.x, block.y] = [block.newX, block.newY];
 
@@ -351,7 +389,7 @@ export default class gameScene extends Phaser.Scene
 
     energyAnimation(blocks) {
         blocks.forEach( (block, index) => {
-            block.ttl = block.ttl - this.deltaTime;
+            block.ttl = block.ttl - this.deltaTime * this.speed * 5;
             if (block.ttl < 0) {
                 block.destroy();
                 blocks.splice(index,1);
@@ -378,6 +416,8 @@ export default class gameScene extends Phaser.Scene
 
 
     onDropFinished() {
+        this.normalize();
+
         if (this.checkMatches(this.matrix)) {
             this.collapse(this.checkMatches(this.matrix));
         }
@@ -386,6 +426,20 @@ export default class gameScene extends Phaser.Scene
 
     onEnergyFinished() {
         this.spawn();
+    }
+
+
+    normalize() {
+        for ( let curRow = 0; curRow < this.MaxRow; curRow ++) {
+            for ( let curCol = 0; curCol < this.MaxCol; curCol ++) {
+                this.matrix[curRow][curCol].block.col = curCol;
+                this.matrix[curRow][curCol].block.row = curRow;
+                this.matrix[curRow][curCol].block.x = this.ofsetX + this.step * curCol;
+                this.matrix[curRow][curCol].block.y = this.ofsetY + this.step * curRow;;
+                this.matrix[curRow][curCol].block.play(this.animsBlock[this.matrix[curRow][curCol].key]);
+            }
+        } 
+
     }
 
 
