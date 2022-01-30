@@ -14,6 +14,7 @@ function init() {
     const width = document.body.clientWidth;
     const height = document.body.clientHeight;
     let widthCanvas = width;
+    console.log('init')
     if (width > 800) {  
         widthCanvas = 800;
     }
