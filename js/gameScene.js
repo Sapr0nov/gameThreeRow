@@ -306,7 +306,7 @@ export default class gameScene extends Phaser.Scene
         
         block.on('pointerdown', (e) => {
             if (this.isBlocked) return;
-            console.log('start');
+
             block.stop();
             if (this.firstSelBlock == null) {     
                 this.firstSelBlock = block;
@@ -318,7 +318,7 @@ export default class gameScene extends Phaser.Scene
             if (this.isBlocked) return;
             
             if (Math.abs((e.upX - e.downX)) < this.step && Math.abs(2*(e.upY - e.downY)) > this.step ) {
-                console.log('horizontal');
+
                 let nextRow = (e.upX < e.downX) ? this.firstSelBlock.row - 1 : this.firstSelBlock.row + 1;
                 if (nextRow > this.MaxRow) { return; }
                 this.clicked(this.matrix[nextRow][this.firstSelBlock.col].block);
@@ -326,7 +326,7 @@ export default class gameScene extends Phaser.Scene
             }
 
             if (Math.abs((e.upX - e.downX)) > this.step && Math.abs(2*(e.upY - e.downY)) < this.step ) {
-                console.log('vertical');
+
                 let nextCol = (e.upY < e.downY) ? this.firstSelBlock.col - 1 : this.firstSelBlock.col + 1;
                 if (nextCol > this.MaxRow) { return; }
                 this.clicked(this.matrix[this.firstSelBlock.row][nextCol].block);
