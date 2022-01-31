@@ -7,7 +7,7 @@ export default class preLoader extends Phaser.Scene
     preload () {
         this.scale = Math.floor ((1000 * this.game.canvas.width) / this.game.config.widthOrigin) / 1000;
         
-        this.load.image('background', './img/background.jpg');
+        this.load.image('bg_preloader', './img/bg_preloader.jpg');
         this.load.atlas('earRight', './img/earRight.png', './img/earRight.json');
         this.load.atlas('earLeft', './img/earLeft.png', './img/earLeft.json');
         this.load.image('play', './img/play.png');
@@ -20,7 +20,7 @@ export default class preLoader extends Phaser.Scene
         this.deltaTime = 0;
         this.gameScore = 0;
 
-        this.bg = this.add.image(this.game.scale.baseSize.width / 2, Math.floor(this.game.scale.baseSize.height / 2) ,'background').setScale(this.scale,this.scale);
+        this.bg = this.add.image(this.game.scale.baseSize.width / 2, Math.floor(this.game.scale.baseSize.height / 2) ,'bg_preloader').setScale(this.scale,this.scale);
         this.bg.isHide = false;
         this.bg.dalpha = -0.001;
 

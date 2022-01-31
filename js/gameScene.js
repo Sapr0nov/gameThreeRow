@@ -23,7 +23,7 @@ export default class gameScene extends Phaser.Scene
         this.step = width / this.MaxCol;
         this.scale = width / this.game.config.widthOrigin;
         
-        this.ofsetY  = height - 50 - width / this.MaxCol * this.MaxRow; 
+        this.ofsetY  = height - this.baseSize * this.scale / 2 - width / this.MaxCol * this.MaxRow; 
         this.ofsetX = 10 + this.baseSize * this.scale / 2;
         
         
@@ -70,7 +70,7 @@ export default class gameScene extends Phaser.Scene
         this.animsBlock = [this.diamond, this.prism, this.ruby, this.square]; 
 
         this.bg = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 2) ,'background').setScale(this.scale);
-        this.board = this.add.image(0, Math.floor(this.ofsetY - 40), 'board').setScale(this.scale * 0.96);
+        this.board = this.add.image(0, Math.floor(this.ofsetY - 0.75 * this.baseSize * this.scale), 'board').setScale(this.scale * 0.96);
         this.board.setOrigin(0);
         this.board.setAlpha(0.5);
         for (let curRow = 0; curRow < this.MaxRow; curRow ++) {
