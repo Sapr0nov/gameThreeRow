@@ -79,7 +79,7 @@ export default class mainScene extends Phaser.Scene
             this.dAlfa = (this.dAlfa > 0) ? -this.dAlfa : this.dAlfa;
         }
         if ( !this.isBgHide && (this.alfa >= 0.8 || this.alfa < 0.4) ) {
-            this.dAlfa = -this.dAlfa;        }
-
+            this.dAlfa = -this.dAlfa;
+        }
     }
 }
