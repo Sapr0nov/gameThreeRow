@@ -8,7 +8,7 @@ export default class mainScene extends Phaser.Scene
         let width = this.game.canvas.width;
         let height = this.game.canvas.height;
         
-        this.load.image('background', './img/background.jpg');
+        this.load.image('background', './img/bg.jpg');
         this.load.image('play', './img/play.png');
         this.isLandscape = false;
             

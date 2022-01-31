@@ -5,17 +5,13 @@ export default class preLoader extends Phaser.Scene
     }
 
     preload () {
-        let width = this.game.canvas.width;
-        let height = this.game.canvas.height;
+        this.scale = Math.floor ((1000 * this.game.canvas.width) / this.game.config.widthOrigin) / 1000;
         
         this.load.image('background', './img/background.jpg');
+        this.load.image('earLeft', './img/earLeft.png');
+        this.load.image('earRight', './img/earRight.png');
         this.load.image('play', './img/play.png');
         this.isLandscape = false;
-            
-        if (width > height) {
-            this.isLandscape = true;
-            width = width / 2;
-        }  
     }
 
     create () {
@@ -28,8 +24,9 @@ export default class preLoader extends Phaser.Scene
         this.isBgHide = false; 
 
         this.bg = this.add.image(this.game.scale.baseSize.width / 2, Math.floor(this.game.scale.baseSize.height / 2) ,'background');
+        this.bg.setScale(this.scale,this.scale);
         let startBtn = this.add.image(this.game.scale.baseSize.width / 2, Math.floor(this.game.scale.baseSize.height / 2) ,'play');
-  
+
         startBtn.setInteractive({
             cursor: 'url(img/pointer.png), pointer'
         });

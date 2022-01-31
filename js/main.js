@@ -10,15 +10,20 @@ document.addEventListener("DOMContentLoaded", function(e) {
 let game;
 
 function init() {
-    
-    const width = document.body.clientWidth;
-    const height = document.body.clientHeight;
-    let widthCanvas = width;
+    const widthOrigin = 640;
+    const ratioHeight = 1135;
 
-    if (width > 800) {  
-        widthCanvas = 800;
+    const width = document.body.clientWidth;
+    const height = document.body.clientHeight;    
+
+    let widthCanvas = width;
+    let heightCanvas = height;
+
+    if (height * widthOrigin < width * ratioHeight) {
+        widthCanvas = Math.floor(height * widthOrigin / ratioHeight);
+    }else{
+        heightCanvas = Math.floor(width * ratioHeight / widthOrigin );
     }
-    let heightCanvas = (height > width) ? height : Math.floor(width * 5 / 7);
 
     const configMain = {
         type: Phaser.AUTO,
@@ -31,5 +36,6 @@ function init() {
     
     game = new Phaser.Game(configMain);
     game.config.gameTitle ="3 row";
+    game.config.widthOrigin = widthOrigin;
     game.config.gameURL ="https:/stacksite.ru/assets/project2/three/";
 }
