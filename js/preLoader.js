@@ -31,7 +31,7 @@ export default class preLoader extends Phaser.Scene
         let startBtn = this.add.image(this.game.scale.baseSize.width / 2, Math.floor(this.game.scale.baseSize.height / 2) ,'play');
   
         startBtn.setInteractive({
-            cursor: 'url(../img/pointer.png), pointer'
+            cursor: 'url(img/pointer.png), pointer'
         });
 
         startBtn.on('pointerdown', (pointer, gameObject) => {
