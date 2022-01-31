@@ -39,6 +39,7 @@ export default class gameScene extends Phaser.Scene
         this.events.on('transitioncomplete', () => { 
             this.scene.setVisible(true);
             this.normalize();
+            this.gameScore = 0;
         });
         this.scene.setVisible(false);
 
@@ -89,6 +90,7 @@ export default class gameScene extends Phaser.Scene
         this.normalize();
     }
 
+
     update() {
         
         this.deltaTime = new Date().getTime() - this.prevtime;
@@ -130,7 +132,12 @@ export default class gameScene extends Phaser.Scene
 
     }
 
-    /* return Array of lines > 3 */
+    /**
+     * return Array of blocks {}.
+     *
+     * @param {Array[][]} matrix tested matrix.
+     * @return {Array[]} array of Sprite (blocks for delete).
+     */
     checkMatches (matrix) { 
         const lines = [];
         let line, curKey;
@@ -195,7 +202,12 @@ export default class gameScene extends Phaser.Scene
 
     }
     
-
+    /**
+     * return undefined.
+     *
+     * @param {Array of Sprite} blocks - elements for delete.
+     * @return {void 0} undefined.
+     */
     collapse(blocks) {
         blocks.forEach(line => {
             line.forEach( element => {
@@ -206,6 +218,8 @@ export default class gameScene extends Phaser.Scene
                 block.ttl = 300; 
                 this.enrgiesBlocks.push(block);
                 this.matrix[element.block.row][element.block.col].key = null;
+                this.gameScore += 100;
+                console.log(this.gameScore);
                 this.matrix[element.block.row][element.block.col].block.destroy();
             })
         })
@@ -353,6 +367,18 @@ export default class gameScene extends Phaser.Scene
     }
 
 
+    checkWin() {
+        if (this.gameScore > 5000) {
+            this.scene.pause;
+            console.log('win');
+            this.scene.transition({
+                target: 'preLoader',
+                duration: 1300,
+                init: true,
+            })
+        }
+    }
+
     dropAnimation(blocks) {
         blocks.forEach( (block, index) => {
             if (block.newY > block.y) {
@@ -420,7 +446,7 @@ export default class gameScene extends Phaser.Scene
 
     onDropFinished() {
         this.normalize();
-
+        this.checkWin();
         if (this.checkMatches(this.matrix)) {
             this.collapse(this.checkMatches(this.matrix));
         }
