@@ -11,22 +11,21 @@ export default class gameScene extends Phaser.Scene
 
         this.load.atlas('gems', './img/gems.png', './img/gems.json');
         this.load.atlas('energy', './img/energy.png', './img/energy.json');
+        this.load.image('board','./img/board.png');
+        this.load.image('background', './img/background.jpg');
+
 
         this.MaxRow = 5;
         this.MaxCol = 7;
         this.baseSize = 64;
         this.speed = 0.2;
 
-        if (width > height) {
-            width = width / 2;
-            this.ofsetY = 100;   
-        }else {
-            this.ofsetY  = height - width / 7 * 5 - 50; 
-        }
+        this.step = width / this.MaxCol;
+        this.scale = width / this.game.config.widthOrigin;
         
-        this.step = width / 7;
-        this.scale = width / 500;
+        this.ofsetY  = height - 50 - width / this.MaxCol * this.MaxRow; 
         this.ofsetX = 10 + this.baseSize * this.scale / 2;
+        
         
         this.prevtime = new Date().getTime(); 
         this.deltaTime = 0;
@@ -70,6 +69,10 @@ export default class gameScene extends Phaser.Scene
         this.square = this.anims.create({ key: 'square', frames: this.anims.generateFrameNames('gems', { prefix: 'square_', end: 14, zeroPad: 4 }), repeat: -1 });
         this.animsBlock = [this.diamond, this.prism, this.ruby, this.square]; 
 
+        this.bg = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 2) ,'background').setScale(this.scale);
+        this.board = this.add.image(0, Math.floor(this.ofsetY - 40), 'board').setScale(this.scale * 0.96);
+        this.board.setOrigin(0);
+        this.board.setAlpha(0.5);
         for (let curRow = 0; curRow < this.MaxRow; curRow ++) {
             for (let curCol = 0; curCol < this.MaxCol; curCol ++) {
                 this.matrix[curRow][curCol] = {};
