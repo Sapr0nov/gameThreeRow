@@ -40,5 +40,15 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":114,"h":174},
 	"sourceSize": {"w":114,"h":174}
 }
+<<<<<<< HEAD
 }
+=======
+},
+"meta": {
+	"image": "earLeft.png",
+	"format": "RGBA8888",
+	"size": {"w":116,"h":480},
+	"scale": "1"
+	}
+>>>>>>> e9c48278d53e49e7fff86c254a3c552b8b3a2a50
 }

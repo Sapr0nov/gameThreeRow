@@ -5,18 +5,8 @@ export default class mainScene extends Phaser.Scene
     }
 
     preload () {
-        let width = this.game.canvas.width;
-        let height = this.game.canvas.height;
-        
-        this.load.image('background', './img/background.jpg');
+        this.load.image('background', './img/bg.jpg');
         this.load.image('play', './img/play.png');
-        this.isLandscape = false;
-            
-        if (width > height) {
-            this.isLandscape = true;
-            width = width / 2;
-        }
-        
     }
 
     create () {
@@ -79,7 +69,7 @@ export default class mainScene extends Phaser.Scene
             this.dAlfa = (this.dAlfa > 0) ? -this.dAlfa : this.dAlfa;
         }
         if ( !this.isBgHide && (this.alfa >= 0.8 || this.alfa < 0.4) ) {
-            this.dAlfa = -this.dAlfa;        }
-
+            this.dAlfa = -this.dAlfa;
+        }
     }
 }
