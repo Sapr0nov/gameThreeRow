@@ -404,11 +404,5 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":64,"h":64},
 	"sourceSize": {"w":64,"h":64},
 	"pivot": {"x":0.5,"y":0.5}
-}},
-"meta": {
-	"image": "gems.png",
-	"format": "RGBA8888",
-	"size": {"w":992,"h":200},
-	"scale": "1"
-}
+}}
 }

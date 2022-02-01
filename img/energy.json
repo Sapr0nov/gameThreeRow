@@ -127,11 +127,5 @@
 	"trimmed": true,
 	"spriteSourceSize": {"x":7,"y":18,"w":160,"h":157},
 	"sourceSize": {"w":182,"h":206}
-}},
-"meta": {
-	"image": "energy",
-	"format": "RGBA8888",
-	"size": {"w":872,"h":510},
-	"scale": "1"
-}
+}}
 }
