@@ -13,7 +13,9 @@ export default class gameScene extends Phaser.Scene
         this.load.atlas('energy', './img/energy.png', './img/energy.json');
         this.load.image('board','./img/board.png');
         this.load.image('background', './img/background.jpg');
-
+        this.load.image('bar','./img/bar_empty.png');
+        this.load.image('bar-progress','./img/bar_progress.png');
+        this.load.image('prize','./img/win.png');
 
         this.MaxRow = 5;
         this.MaxCol = 7;
@@ -40,6 +42,7 @@ export default class gameScene extends Phaser.Scene
             this.scene.setVisible(true);
             this.normalize();
             this.gameScore = 0;
+            this.bars.forEach((bars, i) => this.resetProgress(i) );
         });
         this.scene.setVisible(false);
 
@@ -62,7 +65,7 @@ export default class gameScene extends Phaser.Scene
                 this.normalize();
             }
         });
-
+        this.keys = ['diamond','prism','ruby','squaer'];
         this.energy = this.anims.create({ key: 'energy', delay :0, hideOnComplete: true, frames: this.anims.generateFrameNames('energy', { prefix: 'energy_', end: 15, zeroPad: 4 }), repeat: 0 });
         this.diamond = this.anims.create({ key: 'diamond', frames: this.anims.generateFrameNames('gems', { prefix: 'diamond_', end: 15, zeroPad: 4 }), repeat: -1 });
         this.prism = this.anims.create({ key: 'prism', frames: this.anims.generateFrameNames('gems', { prefix: 'prism_', end: 6, zeroPad: 4 }), repeat: -1 });
@@ -74,6 +77,18 @@ export default class gameScene extends Phaser.Scene
         this.board = this.add.image(0, Math.floor(this.ofsetY - 0.75 * this.baseSize * this.scale), 'board').setScale(this.scale * 0.96);
         this.board.setOrigin(0);
         this.board.setAlpha(0.5);
+        this.prize = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 3) ,'prize').setScale(this.scale);
+        this.prize.setVisible(false);
+        this.bars = Array(5);
+        this.barsProgress = Array(5);
+
+        for (let i = 0; i < 5; i ++) {
+            this.bars[i] = this.add.image(10 * this.scale, Math.floor(this.game.scale.baseSize.height / 10 + 40 * i * this.scale) ,'bar').setScale(this.scale);
+            this.bars[i].setOrigin(0);
+            this.barsProgress[i] = this.add.image( 10 * this.scale, Math.floor(this.game.scale.baseSize.height / 10 + 40 * i * this.scale) ,'bar-progress').setScale(this.scale);
+            this.barsProgress[i].setOrigin(0);
+        }
+   
         for (let curRow = 0; curRow < this.MaxRow; curRow ++) {
             for (let curCol = 0; curCol < this.MaxCol; curCol ++) {
                 this.matrix[curRow][curCol] = {};
@@ -211,15 +226,18 @@ export default class gameScene extends Phaser.Scene
     collapse(blocks) {
         blocks.forEach(line => {
             line.forEach( element => {
-                this.matrix[element.block.row][element.block.col].key = null;
-
                 let block = this.add.sprite(element.block.x, element.block.y, 'energy');
                 block.play(this.energy);
                 block.ttl = 300; 
                 this.enrgiesBlocks.push(block);
-                this.matrix[element.block.row][element.block.col].key = null;
-                this.gameScore += 100;
-                console.log(this.gameScore);
+
+                // get number of type block
+                let key = this.matrix[element.block.row][element.block.col].key;
+                if (key != null) {
+                    this.addProgress(key, 5);
+                    this.gameScore += 5;    
+                }
+                this.matrix[element.block.row][element.block.col].key = null;                
                 this.matrix[element.block.row][element.block.col].block.destroy();
             })
         })
@@ -367,16 +385,56 @@ export default class gameScene extends Phaser.Scene
     }
 
 
-    checkWin() {
-        if (this.gameScore > 5000) {
-            this.scene.pause;
-            console.log('win');
-            this.scene.transition({
-                target: 'preLoader',
-                duration: 1300,
-                init: true,
-            })
+    addProgress (number, progress) {
+        let newValue = this.barsProgress[number].value + progress;
+        this.barsProgress[number].value = newValue;
+        this.barsProgress[number].setScale( newValue / 100 * this.scale, this.scale );
+        this.barsProgress[number].x = 20 * this.scale;
+        if (newValue > 100) {
+            console.log('onFull(number)');
+            this.barsProgress[number].value = 0;
+            this.resetProgress(number);
         }
+    }
+    
+    
+    resetProgress (number) {
+        this.barsProgress[number].value = 0;
+        this.addProgress(number, 0);
+    }
+
+
+    checkWin() {
+        if (this.gameScore > 100) {
+            console.log('win');
+            this.matrix.forEach(rows => rows.forEach(el => el.block.setVisible(false)));
+
+            this.bg.setAlpha(0.3);
+            this.board.setVisible(false);
+            this.barsProgress.forEach( bar => { (bar.setVisible(false) ) })
+            this.bars.forEach( bar => { (bar.setVisible(false) ) })
+
+            this.prize.setVisible(true);
+            this.prize.setInteractive( { cursor: 'url(img/pointer.png), pointer' });
+            this.prize.on('pointerdown', () => {
+                this.switchScene();
+            })
+            return true;
+        }
+        return false;
+    }
+
+
+    switchScene () {
+        this.prize.disableInteractive();
+        this.prize.setRotation(0.1);
+        this.bg.isHide = true;
+
+        this.scene.transition({
+            target: 'preLoader',
+            duration: 1300,
+            init: true,
+        })
     }
 
     dropAnimation(blocks) {
@@ -446,7 +504,9 @@ export default class gameScene extends Phaser.Scene
 
     onDropFinished() {
         this.normalize();
-        this.checkWin();
+        if (this.checkWin()) {
+             return;
+        };
         if (this.checkMatches(this.matrix)) {
             this.collapse(this.checkMatches(this.matrix));
         }
