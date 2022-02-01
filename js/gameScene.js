@@ -71,11 +71,13 @@ export default class gameScene extends Phaser.Scene
         });
         this.keys = ['diamond','prism','ruby','squaer'];
         this.energy = this.anims.create({ key: 'energy', delay :0, hideOnComplete: true, frames: this.anims.generateFrameNames('energy', { prefix: 'energy_', end: 15, zeroPad: 4 }), repeat: 0 });
+        this.bomb1 = this.anims.create({ key: 'bomb1', delay :0, hideOnComplete: true, frames: this.anims.generateFrameNames('energy', { prefix: 'energy_', end: 15, zeroPad: 4 }), repeat: -1 });
+        this.bomb2 = this.anims.create({ key: 'bomb2', delay :0, hideOnComplete: true, frames: this.anims.generateFrameNames('energy', { prefix: 'energy_', end: 15, zeroPad: 4 }), repeat: -1 });
         this.diamond = this.anims.create({ key: 'diamond', frames: this.anims.generateFrameNames('gems', { prefix: 'diamond_', end: 15, zeroPad: 4 }), repeat: -1 });
         this.prism = this.anims.create({ key: 'prism', frames: this.anims.generateFrameNames('gems', { prefix: 'prism_', end: 6, zeroPad: 4 }), repeat: -1 });
         this.ruby = this.anims.create({ key: 'ruby', frames: this.anims.generateFrameNames('gems', { prefix: 'ruby_', end: 6, zeroPad: 4 }), repeat: -1 });
         this.square = this.anims.create({ key: 'square', frames: this.anims.generateFrameNames('gems', { prefix: 'square_', end: 14, zeroPad: 4 }), repeat: -1 });
-        this.animsBlock = [this.diamond, this.prism, this.ruby, this.square]; 
+        this.animsBlock = [this.diamond, this.prism, this.ruby, this.square, this.energy, this.bomb1, this.bomb2];
 
         this.bg = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 2) ,'background').setScale(this.scale);
 
@@ -222,7 +224,8 @@ export default class gameScene extends Phaser.Scene
                     line = [];
                 }
             }       
-        }        
+        }   
+        
         return lines;
     }
 
@@ -239,19 +242,26 @@ export default class gameScene extends Phaser.Scene
      */
     collapse(blocks) {
         blocks.forEach(line => {
-            line.forEach( element => {
+            if (line.length > 3) {
+                line.rand = Math.floor(Math.random()*line.length);
+            }
+            line.forEach( (element, i ) => {
                 let block = this.add.sprite(element.block.x, element.block.y, 'energy');
                 block.play(this.energy);
                 block.ttl = 300; 
                 this.enrgiesBlocks.push(block);
-
-                // get number of type block
                 let key = this.matrix[element.block.row][element.block.col].key;
                 if (key != null) {
                     this.addProgress(key, 5);
                 }
-                this.matrix[element.block.row][element.block.col].key = null;                
-                this.matrix[element.block.row][element.block.col].block.destroy();
+
+                if (line.rand && i === line.rand) {
+                    this.matrix[element.block.row][element.block.col].key = 2 + line.length;
+                }else{
+                    // get number of type block
+                    this.matrix[element.block.row][element.block.col].key = null;                
+                    this.matrix[element.block.row][element.block.col].block.destroy();
+                }
             })
         })
     }
@@ -479,6 +489,7 @@ export default class gameScene extends Phaser.Scene
             init: true,
         })
     }
+
 
     dropAnimation(blocks) {
         blocks.forEach( (block, index) => {
