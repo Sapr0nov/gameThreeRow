@@ -16,6 +16,7 @@ export default class gameScene extends Phaser.Scene
         this.load.image('bar','./img/bar_empty.png');
         this.load.image('bar-progress','./img/bar_progress.png');
         this.load.image('prize','./img/win.png');
+        this.load.image('noprize','./img/fail.png');
         this.load.svg('desk-life', './img/desk_life.svg');
         this.load.svg('desk-score', './img/desk_score.svg');
         
@@ -82,13 +83,15 @@ export default class gameScene extends Phaser.Scene
         this.deskScore = this.add.image(this.game.scale.baseSize.width - 110, 50, 'desk-score').setScale(-this.scale, this.scale);
         this.lifes = this.add.text(130, 42, '0000', { fontFamily: 'Tahoma, Times, serif', fontSize : '32px' }).setScale(this.scale);
         this.score = this.add.text(this.game.scale.baseSize.width - 180, 42, '0000', { fontFamily: 'Tahoma, Times, serif', fontSize : '32px'}).setScale(this.scale);
-        this.lifes.num = 2;
+        this.lifes.num = 20;
         this.lifes.setText(this.lifes.num);
         this.board = this.add.image(0, Math.floor(this.ofsetY - 0.75 * this.baseSize * this.scale), 'board').setScale(this.scale * 0.96);
         this.board.setOrigin(0);
         this.board.setAlpha(0.5);
         this.prize = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 3) ,'prize').setScale(this.scale);
         this.prize.setVisible(false);
+        this.noprize = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 3) ,'noprize').setScale(this.scale);
+        this.noprize.setVisible(false);
 
         this.bars = Array(5);
         this.barsProgress = Array(5);
@@ -404,7 +407,7 @@ export default class gameScene extends Phaser.Scene
         this.barsProgress[number].x = 20 * this.scale;
 
         if (newValue > 100) {
-            console.log('onFull(number)');
+            console.log('onFull(number)', number);
             this.gameScore += 100;
             this.barsProgress[number].value = 0;
             this.resetProgress(number);
@@ -435,41 +438,33 @@ export default class gameScene extends Phaser.Scene
 
 
     checkWin() {
-        if (this.gameScore > this.victoryScore) {
-            console.log('win');
-            this.matrix.forEach(rows => rows.forEach(el => el.block.setVisible(false)));
+        let showCup;
 
-            this.bg.setAlpha(0.3);
-            this.board.setVisible(false);
-            this.barsProgress.forEach( bar => { (bar.setVisible(false) ) })
-            this.bars.forEach( bar => { (bar.setVisible(false) ) })
+        if (this.gameScore < this.victoryScore && this.lifes.num > 0) {
+            return false;
+        }
 
-            this.prize.setVisible(true);
-            this.prize.setInteractive( { cursor: 'url(img/pointer.png), pointer' });
-            this.prize.on('pointerdown', () => {
-                this.switchScene();
-            })
-            return true;
+        if (this.gameScore >= this.victoryScore) {
+            showCup = this.prize;
         }
 
         if (this.lifes.num <= 0) {
-            console.log('fail');
-            this.matrix.forEach(rows => rows.forEach(el => el.block.setVisible(false)));
-
-            this.bg.setAlpha(0.3);
-            this.board.setVisible(false);
-            this.barsProgress.forEach( bar => { (bar.setVisible(false) ) })
-            this.bars.forEach( bar => { (bar.setVisible(false) ) })
-
-            this.prize.setVisible(true);
-            this.prize.setInteractive( { cursor: 'url(img/pointer.png), pointer' });
-            this.prize.on('pointerdown', () => {
-                this.switchScene();
-            })
-            return true;
-        
+            showCup = this.noprize;
         }
-        return false;
+
+        this.matrix.forEach(rows => rows.forEach(el => el.block.setVisible(false)));
+        this.bg.setAlpha(0.3);
+        this.board.setVisible(false);
+        this.barsProgress.forEach( bar => { (bar.setVisible(false) ) })
+        this.bars.forEach( bar => { (bar.setVisible(false) ) })
+
+        showCup.setVisible(true);
+        showCup.setInteractive( { cursor: 'url(img/pointer.png), pointer' });
+        showCup.on('pointerdown', () => {
+            this.switchScene();
+        })
+        
+        return true;
     }
 
 
