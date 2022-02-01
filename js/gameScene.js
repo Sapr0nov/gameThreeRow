@@ -16,11 +16,14 @@ export default class gameScene extends Phaser.Scene
         this.load.image('bar','./img/bar_empty.png');
         this.load.image('bar-progress','./img/bar_progress.png');
         this.load.image('prize','./img/win.png');
-
+        this.load.svg('desk-life', './img/desk_life.svg');
+        this.load.svg('desk-score', './img/desk_score.svg');
+        
         this.MaxRow = 5;
         this.MaxCol = 7;
         this.baseSize = 64;
         this.speed = 0.2;
+        this.victoryScore = 1200;
 
         this.step = width / this.MaxCol;
         this.scale = width / this.game.config.widthOrigin;
@@ -74,18 +77,26 @@ export default class gameScene extends Phaser.Scene
         this.animsBlock = [this.diamond, this.prism, this.ruby, this.square]; 
 
         this.bg = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 2) ,'background').setScale(this.scale);
+
+        this.deskLife = this.add.image(110, 50, 'desk-life').setScale(this.scale);
+        this.deskScore = this.add.image(this.game.scale.baseSize.width - 110, 50, 'desk-score').setScale(-this.scale, this.scale);
+        this.lifes = this.add.text(130, 42, '0000', { fontFamily: 'Tahoma, Times, serif', fontSize : '32px' }).setScale(this.scale);
+        this.score = this.add.text(this.game.scale.baseSize.width - 180, 42, '0000', { fontFamily: 'Tahoma, Times, serif', fontSize : '32px'}).setScale(this.scale);
+        this.lifes.num = 2;
+        this.lifes.setText(this.lifes.num);
         this.board = this.add.image(0, Math.floor(this.ofsetY - 0.75 * this.baseSize * this.scale), 'board').setScale(this.scale * 0.96);
         this.board.setOrigin(0);
         this.board.setAlpha(0.5);
         this.prize = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 3) ,'prize').setScale(this.scale);
         this.prize.setVisible(false);
+
         this.bars = Array(5);
         this.barsProgress = Array(5);
 
         for (let i = 0; i < 5; i ++) {
-            this.bars[i] = this.add.image(10 * this.scale, Math.floor(this.game.scale.baseSize.height / 10 + 40 * i * this.scale) ,'bar').setScale(this.scale);
+            this.bars[i] = this.add.image(10 * this.scale, Math.floor(this.game.scale.baseSize.height / 10 + 50 + 40 * i * this.scale) ,'bar').setScale(this.scale);
             this.bars[i].setOrigin(0);
-            this.barsProgress[i] = this.add.image( 10 * this.scale, Math.floor(this.game.scale.baseSize.height / 10 + 40 * i * this.scale) ,'bar-progress').setScale(this.scale);
+            this.barsProgress[i] = this.add.image( 10 * this.scale, Math.floor(this.game.scale.baseSize.height / 10 + 50 + 40 * i * this.scale) ,'bar-progress').setScale(this.scale);
             this.barsProgress[i].setOrigin(0);
         }
    
@@ -93,8 +104,8 @@ export default class gameScene extends Phaser.Scene
             for (let curCol = 0; curCol < this.MaxCol; curCol ++) {
                 this.matrix[curRow][curCol] = {};
                 [this.matrix[curRow][curCol].block, this.matrix[curRow][curCol].key] = this.newBlock(curRow, curCol);
-                }
             }
+        }
         
         let lines = this.checkMatches(this.matrix);
         while (lines.length > 0) {
@@ -235,7 +246,6 @@ export default class gameScene extends Phaser.Scene
                 let key = this.matrix[element.block.row][element.block.col].key;
                 if (key != null) {
                     this.addProgress(key, 5);
-                    this.gameScore += 5;    
                 }
                 this.matrix[element.block.row][element.block.col].key = null;                
                 this.matrix[element.block.row][element.block.col].block.destroy();
@@ -279,6 +289,8 @@ export default class gameScene extends Phaser.Scene
 
         }else{
             this.matrix = newMatrix;
+            this.lifes.num --;
+            this.lifes.setText( this.lifes.num );
         }
 
         this.swapBlocks.push(el1);
@@ -390,11 +402,29 @@ export default class gameScene extends Phaser.Scene
         this.barsProgress[number].value = newValue;
         this.barsProgress[number].setScale( newValue / 100 * this.scale, this.scale );
         this.barsProgress[number].x = 20 * this.scale;
+
         if (newValue > 100) {
             console.log('onFull(number)');
+            this.gameScore += 100;
             this.barsProgress[number].value = 0;
             this.resetProgress(number);
         }
+        
+        this.gameScore += progress;
+        
+        if (this.gameScore < 10 ) {
+            this.score.setText( '000' + this.gameScore );
+            
+        }else if (this.gameScore < 100 ) {
+            this.score.setText( '00' + this.gameScore );
+
+        }else if (this.gameScore < 1000 ) {
+            this.score.setText( '0' + this.gameScore );
+
+        } else {
+            this.score.setText( '' + this.gameScore );
+        }
+
     }
     
     
@@ -405,7 +435,7 @@ export default class gameScene extends Phaser.Scene
 
 
     checkWin() {
-        if (this.gameScore > 100) {
+        if (this.gameScore > this.victoryScore) {
             console.log('win');
             this.matrix.forEach(rows => rows.forEach(el => el.block.setVisible(false)));
 
@@ -420,6 +450,24 @@ export default class gameScene extends Phaser.Scene
                 this.switchScene();
             })
             return true;
+        }
+
+        if (this.lifes.num <= 0) {
+            console.log('fail');
+            this.matrix.forEach(rows => rows.forEach(el => el.block.setVisible(false)));
+
+            this.bg.setAlpha(0.3);
+            this.board.setVisible(false);
+            this.barsProgress.forEach( bar => { (bar.setVisible(false) ) })
+            this.bars.forEach( bar => { (bar.setVisible(false) ) })
+
+            this.prize.setVisible(true);
+            this.prize.setInteractive( { cursor: 'url(img/pointer.png), pointer' });
+            this.prize.on('pointerdown', () => {
+                this.switchScene();
+            })
+            return true;
+        
         }
         return false;
     }
