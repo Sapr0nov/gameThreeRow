@@ -11,13 +11,7 @@ export default class GameScene extends Phaser.Scene
 
         this.load.atlas('gems', './img/gems.png', './img/gems.json');
         this.load.atlas('energy', './img/energy.png', './img/energy.json');
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-
-=======
         this.load.atlas('bomb','./img/bomb.png','./img/bomb.json');
-=======
->>>>>>> e9c48278d53e49e7fff86c254a3c552b8b3a2a50
         this.load.image('board','./img/board.png');
         this.load.image('background', './img/background.jpg');
         this.load.image('bar','./img/bar_empty.png');
@@ -27,10 +21,6 @@ export default class GameScene extends Phaser.Scene
         this.load.svg('desk-life', './img/desk_life.svg');
         this.load.svg('desk-score', './img/desk_score.svg');
         
-<<<<<<< HEAD
->>>>>>> Stashed changes
-=======
->>>>>>> e9c48278d53e49e7fff86c254a3c552b8b3a2a50
         this.MaxRow = 5;
         this.MaxCol = 7;
         this.baseSize = 64;
@@ -80,35 +70,15 @@ export default class GameScene extends Phaser.Scene
                 this.normalize();
             }
         });
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-
-        this.energy = this.anims.create({ key: 'energy', delay :0, hideOnComplete: true, frames: this.anims.generateFrameNames('energy', { prefix: 'energy_', end: 15, zeroPad: 4 }), repeat: 0 });
-=======
         this.keys = ['diamond','prism','ruby','square'];
         this.energy = this.anims.create({ key: 'energy', delay :0, hideOnComplete: true, frames: this.anims.generateFrameNames('energy', { prefix: 'energy_', end: 15, zeroPad: 4 }), repeat: 0 });
         this.bomb1 = this.anims.create({ key: 'bomb', frames: this.anims.generateFrameNames('bomb', { prefix: 'bomb_', end: 2, zeroPad: 4 }), repeat: -1 });
         this.bomb2 = this.anims.create({ key: 'bomb', frames: this.anims.generateFrameNames('bomb', { prefix: 'bomb_', end: 2, zeroPad: 4 }), repeat: -1 });
->>>>>>> Stashed changes
-=======
-        this.keys = ['diamond','prism','ruby','squaer'];
-        this.energy = this.anims.create({ key: 'energy', delay :0, hideOnComplete: true, frames: this.anims.generateFrameNames('energy', { prefix: 'energy_', end: 15, zeroPad: 4 }), repeat: 0 });
-        this.bomb1 = this.anims.create({ key: 'bomb1', delay :0, hideOnComplete: true, frames: this.anims.generateFrameNames('energy', { prefix: 'energy_', end: 15, zeroPad: 4 }), repeat: -1 });
-        this.bomb2 = this.anims.create({ key: 'bomb2', delay :0, hideOnComplete: true, frames: this.anims.generateFrameNames('energy', { prefix: 'energy_', end: 15, zeroPad: 4 }), repeat: -1 });
->>>>>>> e9c48278d53e49e7fff86c254a3c552b8b3a2a50
         this.diamond = this.anims.create({ key: 'diamond', frames: this.anims.generateFrameNames('gems', { prefix: 'diamond_', end: 15, zeroPad: 4 }), repeat: -1 });
         this.prism = this.anims.create({ key: 'prism', frames: this.anims.generateFrameNames('gems', { prefix: 'prism_', end: 6, zeroPad: 4 }), repeat: -1 });
         this.ruby = this.anims.create({ key: 'ruby', frames: this.anims.generateFrameNames('gems', { prefix: 'ruby_', end: 6, zeroPad: 4 }), repeat: -1 });
         this.square = this.anims.create({ key: 'square', frames: this.anims.generateFrameNames('gems', { prefix: 'square_', end: 14, zeroPad: 4 }), repeat: -1 });
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-        this.animsBlock = [this.diamond, this.prism, this.ruby, this.square]; 
-
-=======
         this.animsBlock = [this.diamond, this.prism, this.ruby, this.square, this.energy,  this.bomb1, this.bomb2 ];
-=======
-        this.animsBlock = [this.diamond, this.prism, this.ruby, this.square, this.energy, this.bomb1, this.bomb2];
->>>>>>> e9c48278d53e49e7fff86c254a3c552b8b3a2a50
 
         this.bg = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 2) ,'background').setScale(this.scale);
 
@@ -136,10 +106,6 @@ export default class GameScene extends Phaser.Scene
             this.barsProgress[i].setOrigin(0);
         }
    
-<<<<<<< HEAD
->>>>>>> Stashed changes
-=======
->>>>>>> e9c48278d53e49e7fff86c254a3c552b8b3a2a50
         for (let curRow = 0; curRow < this.MaxRow; curRow ++) {
             for (let curCol = 0; curCol < this.MaxCol; curCol ++) {
                 this.matrix[curRow][curCol] = {};
@@ -198,25 +164,12 @@ export default class GameScene extends Phaser.Scene
 
     }
 
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-    /* return Array of lines > 3 */
-=======
     /**
      * return Array of  .
      *
      * @param {Array[][]} matrix tested matrix.
      * @return {Array[]} array of {blocks : Sprite, key : Int} (blocks for delete).
      */
->>>>>>> Stashed changes
-=======
-    /**
-     * return Array of blocks {}.
-     *
-     * @param {Array[][]} matrix tested matrix.
-     * @return {Array[]} array of Sprite (blocks for delete).
-     */
->>>>>>> e9c48278d53e49e7fff86c254a3c552b8b3a2a50
     checkMatches (matrix) { 
         const lines = [];
         let line, curKey;
@@ -282,19 +235,6 @@ export default class GameScene extends Phaser.Scene
 
     }
     
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-
-=======
-    /**
-     * return undefined.
-     *
-     * @param {Array of Sprite} blocks - elements for delete.
-     * @return {void 0} undefined.
-     */
->>>>>>> e9c48278d53e49e7fff86c254a3c552b8b3a2a50
-    collapse(blocks) {
-=======
     /**
      * return undefined.
      *
@@ -302,7 +242,6 @@ export default class GameScene extends Phaser.Scene
      * @return {void 0} undefined.
      */
     collapse (blocks) {
->>>>>>> Stashed changes
         blocks.forEach(line => {
             if (line.length > 3) {
                 line.rand = Math.floor(Math.random()*line.length);
@@ -312,33 +251,18 @@ export default class GameScene extends Phaser.Scene
                 block.play(this.energy);
                 block.ttl = 300; 
                 this.enrgiesBlocks.push(block);
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-                this.matrix[element.block.row][element.block.col].key = null;
-                this.matrix[element.block.row][element.block.col].block.destroy();
-=======
-=======
->>>>>>> e9c48278d53e49e7fff86c254a3c552b8b3a2a50
                 let key = this.matrix[element.block.row][element.block.col].key;
                 if (key != null) {
                     this.addProgress(key, 5);
                 }
 
                 if (line.rand && i === line.rand) {
-<<<<<<< HEAD
                     this.matrix[element.block.row][element.block.col].key = (line.length === 4) ? 5 : 6;
-=======
-                    this.matrix[element.block.row][element.block.col].key = 2 + line.length;
->>>>>>> e9c48278d53e49e7fff86c254a3c552b8b3a2a50
                 }else{
                     // get number of type block
                     this.matrix[element.block.row][element.block.col].key = null;                
                     this.matrix[element.block.row][element.block.col].block.destroy();
                 }
-<<<<<<< HEAD
->>>>>>> Stashed changes
-=======
->>>>>>> e9c48278d53e49e7fff86c254a3c552b8b3a2a50
             })
         })
     }
@@ -518,16 +442,10 @@ export default class GameScene extends Phaser.Scene
     }
 
 
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
     addProgress (number, progress) {
         //bomb
         if (number > 4 ) {  return; }
         
-=======
-    addProgress (number, progress) {
->>>>>>> e9c48278d53e49e7fff86c254a3c552b8b3a2a50
         let newValue = this.barsProgress[number].value + progress;
         this.barsProgress[number].value = newValue;
         this.barsProgress[number].setScale( newValue / 100 * this.scale, this.scale );
@@ -608,10 +526,6 @@ export default class GameScene extends Phaser.Scene
     }
 
 
-<<<<<<< HEAD
->>>>>>> Stashed changes
-=======
->>>>>>> e9c48278d53e49e7fff86c254a3c552b8b3a2a50
     dropAnimation(blocks) {
         blocks.forEach( (block, index) => {
             if (block.newY > block.y) {
