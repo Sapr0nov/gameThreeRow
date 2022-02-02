@@ -1,0 +1,99 @@
+{"frames": {
+
+"block_air_0000":
+{
+	"frame": {"x":1,"y":1,"w":122,"h":125},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":3,"y":0,"w":122,"h":125},
+	"sourceSize": {"w":128,"h":128}
+},
+"block_arthropoda_0000":
+{
+	"frame": {"x":125,"y":1,"w":122,"h":125},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":3,"y":0,"w":122,"h":125},
+	"sourceSize": {"w":128,"h":128}
+},
+"block_demon_0000":
+{
+	"frame": {"x":249,"y":1,"w":122,"h":125},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":3,"y":0,"w":122,"h":125},
+	"sourceSize": {"w":128,"h":128}
+},
+"block_earth_0000":
+{
+	"frame": {"x":373,"y":1,"w":122,"h":125},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":3,"y":0,"w":122,"h":125},
+	"sourceSize": {"w":128,"h":128}
+},
+"block_fire_0000":
+{
+	"frame": {"x":497,"y":1,"w":122,"h":125},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":3,"y":0,"w":122,"h":125},
+	"sourceSize": {"w":128,"h":128}
+},
+"block_flash_0000":
+{
+	"frame": {"x":621,"y":1,"w":122,"h":125},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":3,"y":0,"w":122,"h":125},
+	"sourceSize": {"w":128,"h":128}
+},
+"block_forest_0000":
+{
+	"frame": {"x":745,"y":1,"w":122,"h":125},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":3,"y":0,"w":122,"h":125},
+	"sourceSize": {"w":128,"h":128}
+},
+"block_ice_0000":
+{
+	"frame": {"x":869,"y":1,"w":122,"h":125},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":3,"y":0,"w":122,"h":125},
+	"sourceSize": {"w":128,"h":128}
+},
+"block_lindworm_0000":
+{
+	"frame": {"x":993,"y":1,"w":122,"h":125},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":3,"y":0,"w":122,"h":125},
+	"sourceSize": {"w":128,"h":128}
+},
+"block_water_0000":
+{
+	"frame": {"x":1117,"y":1,"w":122,"h":125},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":3,"y":0,"w":122,"h":125},
+	"sourceSize": {"w":128,"h":128}
+},
+"bomb_0000":
+{
+	"frame": {"x":1241,"y":1,"w":120,"h":124},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":120,"h":124},
+	"sourceSize": {"w":120,"h":124}
+},
+"tnt_0000":
+{
+	"frame": {"x":1363,"y":1,"w":120,"h":124},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":120,"h":124},
+	"sourceSize": {"w":120,"h":124}
+}}
+}

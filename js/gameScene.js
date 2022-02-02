@@ -9,9 +9,9 @@ export default class GameScene extends Phaser.Scene
         let width = this.game.canvas.width;
         let height = this.game.canvas.height;
 
-        this.load.atlas('gems', './img/gems.png', './img/gems.json');
+        this.load.atlas('blocks', './img/blocks.png', './img/blocks.json');
         this.load.atlas('energy', './img/energy.png', './img/energy.json');
-        this.load.atlas('bomb','./img/bomb.png','./img/bomb.json');
+
         this.load.image('board','./img/board.png');
         this.load.image('background', './img/background.jpg');
         this.load.image('bar','./img/bar_empty.png');
@@ -26,6 +26,7 @@ export default class GameScene extends Phaser.Scene
         this.baseSize = 64;
         this.speed = 0.2;
         this.victoryScore = 1200;
+        this.MaxLife = 20;
 
         this.step = width / this.MaxCol;
         this.scale = width / this.game.config.widthOrigin;
@@ -70,23 +71,25 @@ export default class GameScene extends Phaser.Scene
                 this.normalize();
             }
         });
-        this.keys = ['diamond','prism','ruby','square'];
+
+        this.keys = ['block_air','block_arthropoda','block_demon','block_earth','block_fire','block_flash','block_forest','block_ice','block_lindworm','block_water','bomb','tnt'];
+
         this.energy = this.anims.create({ key: 'energy', delay :0, hideOnComplete: true, frames: this.anims.generateFrameNames('energy', { prefix: 'energy_', end: 15, zeroPad: 4 }), repeat: 0 });
-        this.bomb1 = this.anims.create({ key: 'bomb', frames: this.anims.generateFrameNames('bomb', { prefix: 'bomb_', end: 2, zeroPad: 4 }), repeat: -1 });
-        this.bomb2 = this.anims.create({ key: 'bomb', frames: this.anims.generateFrameNames('bomb', { prefix: 'bomb_', end: 2, zeroPad: 4 }), repeat: -1 });
-        this.diamond = this.anims.create({ key: 'diamond', frames: this.anims.generateFrameNames('gems', { prefix: 'diamond_', end: 15, zeroPad: 4 }), repeat: -1 });
-        this.prism = this.anims.create({ key: 'prism', frames: this.anims.generateFrameNames('gems', { prefix: 'prism_', end: 6, zeroPad: 4 }), repeat: -1 });
-        this.ruby = this.anims.create({ key: 'ruby', frames: this.anims.generateFrameNames('gems', { prefix: 'ruby_', end: 6, zeroPad: 4 }), repeat: -1 });
-        this.square = this.anims.create({ key: 'square', frames: this.anims.generateFrameNames('gems', { prefix: 'square_', end: 14, zeroPad: 4 }), repeat: -1 });
-        this.animsBlock = [this.diamond, this.prism, this.ruby, this.square, this.energy,  this.bomb1, this.bomb2 ];
+        this.animsBlock = [];
+        this.keys.forEach( name => {
+            this[name] = this.anims.create({ key: name, frames: this.anims.generateFrameNames('blocks', { prefix: name + '_', end: 0, zeroPad: 4 }), repeat: -1 });
+        })
+        // Handle form color for stage
+        this.animsBlock = [this.block_air, this.block_fire, this.block_water, this.block_forest, this.block_demon, this.tnt, this.bomb];
 
         this.bg = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 2) ,'background').setScale(this.scale);
+        this.deskLife = this.add.image(140 * this.scale, 70 * this.scale, 'desk-life').setScale(this.scale);
+        this.deskScore = this.add.image(this.game.scale.baseSize.width - 140 * this.scale, 70 * this.scale, 'desk-score').setScale(-this.scale, this.scale);
+        this.lifes = this.add.text(210 * this.scale, 64 * this.scale, '0000', { fontFamily: 'Tahoma, Times, serif', fontSize : '32px' }).setScale(this.scale);
+        this.score = this.add.text(this.game.scale.baseSize.width - 230 * this.scale, 64 * this.scale, '0000', { fontFamily: 'Tahoma, Times, serif', fontSize : '32px'}).setScale(this.scale);
 
-        this.deskLife = this.add.image(110, 50, 'desk-life').setScale(this.scale);
-        this.deskScore = this.add.image(this.game.scale.baseSize.width - 110, 50, 'desk-score').setScale(-this.scale, this.scale);
-        this.lifes = this.add.text(130, 42, '0000', { fontFamily: 'Tahoma, Times, serif', fontSize : '32px' }).setScale(this.scale);
-        this.score = this.add.text(this.game.scale.baseSize.width - 180, 42, '0000', { fontFamily: 'Tahoma, Times, serif', fontSize : '32px'}).setScale(this.scale);
-        this.lifes.num = 20;
+        this.lifes.num = this.MaxLife;
+
         this.lifes.setText(this.lifes.num);
         this.board = this.add.image(0, Math.floor(this.ofsetY - 0.75 * this.baseSize * this.scale), 'board').setScale(this.scale * 0.96);
         this.board.setOrigin(0);
@@ -101,9 +104,11 @@ export default class GameScene extends Phaser.Scene
 
         for (let i = 0; i < 5; i ++) {
             this.bars[i] = this.add.image(10 * this.scale, Math.floor(this.game.scale.baseSize.height / 10 + 50 + 40 * i * this.scale) ,'bar').setScale(this.scale);
-            this.bars[i].setOrigin(0);
             this.barsProgress[i] = this.add.image( 10 * this.scale, Math.floor(this.game.scale.baseSize.height / 10 + 50 + 40 * i * this.scale) ,'bar-progress').setScale(this.scale);
+            this.barsPreview = this.add.sprite( 10 * this.scale, Math.floor(this.game.scale.baseSize.height / 10 + 44 + 40 * i * this.scale)).play(this.animsBlock[i]).setScale(this.scale / 3.5);
             this.barsProgress[i].setOrigin(0);
+            this.barsPreview.setOrigin(0);
+            this.bars[i].setOrigin(0);
         }
    
         for (let curRow = 0; curRow < this.MaxRow; curRow ++) {
@@ -171,20 +176,20 @@ export default class GameScene extends Phaser.Scene
      * @return {Array[]} array of {blocks : Sprite, key : Int} (blocks for delete).
      */
     checkMatches (matrix) { 
-        const lines = [];
-        let line, curKey;
+        const linesV = [];
+        const linesH = [];
+
         // vertical
         for (let curCol = 0; curCol < this.MaxCol; curCol ++) {
-            curKey = matrix[0][curCol].key;
-            line = [];
-            line.push(matrix[0][curCol]); 
+            let curKey = matrix[0][curCol].key;
+            let line = [matrix[0][curCol]];
 
             for (let curRow = 1; curRow < this.MaxRow; curRow ++) {
                 if (matrix[curRow][curCol].key === curKey) {
                     line.push(matrix[curRow][curCol]);
                 }else{
                     if (line.length >= 3) { 
-                        lines.push(line);
+                        linesV.push(line);
                     }
                     line = [];
                     curKey = matrix[curRow][curCol].key;
@@ -192,7 +197,7 @@ export default class GameScene extends Phaser.Scene
                 }
                 if (curRow === this.MaxRow-1) {
                     if (line.length >= 3) { 
-                        lines.push(line);
+                        linesV.push(line);
                     }
                     line = [];
                 }
@@ -201,9 +206,8 @@ export default class GameScene extends Phaser.Scene
 
         // horizontal
         for (let curRow = 0; curRow < this.MaxRow; curRow ++) {
-            curKey = matrix[curRow][0].key;
-            line = [];
-            line.push(matrix[curRow][0]); 
+            let curKey = matrix[curRow][0].key;
+            let line = [matrix[curRow][0]];
 
             for (let curCol = 1; curCol < this.MaxCol; curCol ++) {
 
@@ -211,7 +215,7 @@ export default class GameScene extends Phaser.Scene
                     line.push(matrix[curRow][curCol]);
                 }else{
                     if (line.length >= 3) { 
-                        lines.push(line);
+                        linesH.push(line);
                     }
                     line = [];
                     curKey = matrix[curRow][curCol].key;
@@ -220,13 +224,27 @@ export default class GameScene extends Phaser.Scene
 
                 if (curCol === this.MaxCol-1) {
                     if (line.length >= 3) { 
-                        lines.push(line);
+                        linesH.push(line);
                     }
                     line = [];
                 }
             }       
-        }   
-        
+        }
+
+        const lines = [...linesV];
+        for (let i = 0; i < linesH.length; i ++) {
+            lines.forEach( line => {
+                // Attentional return index in match element from FIRST array
+                let indexMatch = this.compareLine(linesH[i], line);
+                if ( indexMatch > -1 ) {
+                    linesH[i].splice(indexMatch, 1);
+                    line.push(...linesH[i]);
+                    linesH.splice(i, 1);
+                };
+            })
+        }
+        console.log(linesH.length, linesV, lines)
+        lines.push(...linesH);
         return lines;
     }
 
@@ -235,6 +253,24 @@ export default class GameScene extends Phaser.Scene
 
     }
     
+    
+    compareLine (arr1, arr2) {
+        let result = -1;
+        arr1.forEach((el1, index) => {
+            if (result) {
+                return;
+            }
+            arr2.forEach(el2 => 
+                {
+                    if (el1.block.col === el2.block.col && el1.block.row === el2.block.row ) {
+                        result = index;
+                        return;
+                    }
+                })
+        })
+        return result;
+    }
+
     /**
      * return undefined.
      *
@@ -257,7 +293,8 @@ export default class GameScene extends Phaser.Scene
                 }
 
                 if (line.rand && i === line.rand) {
-                    this.matrix[element.block.row][element.block.col].key = (line.length === 4) ? 5 : 6;
+                    this.matrix[element.block.row][element.block.col].key = (line.length === 4) ? 6 : 5;
+                    this.matrix[element.block.row][element.block.col].block.play(this.animsBlock[(line.length === 4) ? 6 : 5])
                 }else{
                     // get number of type block
                     this.matrix[element.block.row][element.block.col].key = null;                
@@ -269,12 +306,10 @@ export default class GameScene extends Phaser.Scene
 
 
     clicked (element) {
-        console.log(element.row, element.col, this.matrix[element.row][element.col].key)
         
-        if (this.matrix[element.row][element.col].key === 5 || this.matrix[element.row][element.col].key === 6)  {
+        if (this.matrix[element.row][element.col].key === 6)  {
             //bomb
             const lines = [];
-            console.log('boom');
             [-1, 0, 1].forEach( dx => {
                 [-1, 0 , 1].forEach ( dy => {
                     if ((element.row + dx >= 0 && element.row + dx < this.MaxRow) && (element.col + dy >= 0 && element.col + dy < this.MaxCol)) {
@@ -292,17 +327,33 @@ export default class GameScene extends Phaser.Scene
         }
 
 
-        if (this.firstSelBlock == element) {   
+        if (this.matrix[element.row][element.col].key === 5) {
+            //tnt
+            const lines = [];
+            for (let i = 0; i < this.MaxCol; i ++) {
+                if (this.matrix[element.row][i].key === 5 || this.matrix[element.row][i] === 6) //TODO
+                {
+                    //check again and big boom
+                }
+                lines.push([this.matrix[element.row][i]]);
+            }               
+            this.collapse(lines);
+            return;
+        }
+
+        if (this.firstSelBlock === element) {   
             element.play(this.animsBlock[this.matrix[element.row][element.col].key]);
             this.firstSelBlock = null; 
             return;
         }
-        // checled neighborhood
+        // checked neighborhood
         if ( Math.abs(this.firstSelBlock.row - element.row) + Math.abs(this.firstSelBlock.col - element.col) === 1 ) {
             this.makeSwap(this.firstSelBlock, element);
         }else{
-            this.firstSelBlock.play(this.animsBlock[this.matrix[this.firstSelBlock.row][this.firstSelBlock.col].key]);
-            this.firstSelBlock = element;
+            if (this.firstSelBlock) {
+                this.firstSelBlock.play(this.animsBlock[this.matrix[this.firstSelBlock.row][this.firstSelBlock.col].key]);
+                this.firstSelBlock = element;    
+            }
         }
     }
 
@@ -377,10 +428,10 @@ export default class GameScene extends Phaser.Scene
 
 
     newBlock(curRow, curCol, posRow = curRow, posCol = curCol) {
-        let key = Math.floor(Math.random()*4);
+        let key = Math.floor(Math.random()*5);
         this.x = this.ofsetX + this.step * posCol;
         this.y = this.ofsetY + this.step * posRow;
-        let block = this.add.sprite(this.x, this.y, 'gems');
+        let block = this.add.sprite(this.x, this.y, 'blocks');
         block.play(this.animsBlock[key]);
         block.col = curCol;
         block.row = curRow;
@@ -408,6 +459,9 @@ export default class GameScene extends Phaser.Scene
             }
 
             // checked direction of swipe
+            if (!this.firstSelBlock) {
+                return;
+            }
             if (Math.abs((e.upX - e.downX)) < this.step && Math.abs(2*(e.upY - e.downY)) > this.step ) {
 
                 let nextRow = (e.upX < e.downX) ? this.firstSelBlock.row - 1 : this.firstSelBlock.row + 1;
@@ -430,11 +484,11 @@ export default class GameScene extends Phaser.Scene
         })
 
         block.on('pointerover', () => {
-            block.setScale(this.scale + 0.2);
+            block.setScale(this.scale / 1.9);
         })
         
         block.on('pointerout', () => {
-            block.setScale(this.scale);
+            block.setScale(this.scale / 2);
         })
         
         block.setDisplaySize(this.baseSize * this.scale, this.baseSize * this.scale);
@@ -608,6 +662,7 @@ export default class GameScene extends Phaser.Scene
 
 
     normalize () {
+        this.test();
         for ( let curRow = 0; curRow < this.MaxRow; curRow ++) {
             for ( let curCol = 0; curCol < this.MaxCol; curCol ++) {
                 this.matrix[curRow][curCol].block.col = curCol;
