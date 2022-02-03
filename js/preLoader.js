@@ -119,7 +119,8 @@ export default class PreLoader extends Phaser.Scene
         })
 
         this.nameBoard.on('pointerup', () => {
-            this.htmlInput.style.display = "none";
+            console.log('btn')
+            this.htmlInput.style.display = "block";
             this.htmlInput.click();
             this.htmlInput.focus();
             this.inputNameActive = true;
