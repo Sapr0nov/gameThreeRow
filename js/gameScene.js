@@ -289,7 +289,7 @@ export default class GameScene extends Phaser.Scene
                 if (key != null) {
                     this.addProgress(key, 5);
                 }
-                console.log('line.rand= ', line.rand, i)
+
                 if (line.rand !== void 0 && i === line.rand) {
                     this.matrix[element.block.row][element.block.col].key = (line.length === 4) ? this.typesBlock + 1 : this.typesBlock;
                     this.matrix[element.block.row][element.block.col].block.play(this.animsBlock[(line.length === 4) ? this.typesBlock + 1 : this.typesBlock])
