@@ -457,7 +457,7 @@ export default class GameScene extends Phaser.Scene
 
 
     newBlock(curRow, curCol, posRow = curRow, posCol = curCol) {
-        let key = Math.floor(Math.random() * (this.typesBlock + 2)); // TODO remove +2 - added for test bomb
+        let key = Math.floor(Math.random() * (this.typesBlock));
         this.x = this.ofsetX + this.step * posCol;
         this.y = this.ofsetY + this.step * posRow;
         let block = this.add.sprite(this.x, this.y, 'blocks');
