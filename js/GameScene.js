@@ -18,8 +18,8 @@ export default class GameScene extends Phaser.Scene
         this.load.image('bar-progress','./img/bar_progress.png');
         this.load.image('prize','./img/win.png');
         this.load.image('noprize','./img/fail.png');
-        this.load.svg('desk-life', './img/desk_life.svg');
-        this.load.svg('desk-score', './img/desk_score.svg');
+        this.load.svg('desk-life', './img/desk_life.svg',  {width:300, height:138});
+        this.load.svg('desk-score', './img/desk_score.svg',  {width:300, height:138});
         
         this.MaxRow = 5;
         this.MaxCol = 7;

@@ -13,7 +13,7 @@ export default class PreLoader extends Phaser.Scene
         this.load.atlas('earRight', './img/earRight.png', './img/earRight.json');
         this.load.atlas('earLeft', './img/earLeft.png', './img/earLeft.json');
         this.load.image('play', './img/play.png');
-        this.load.svg('nameBoard', './img/desk_empty.svg');
+        this.load.svg('nameBoard', './img/desk_empty.svg',  {width:300, height:138});
         this.isLandscape = false;
     }
 
@@ -76,8 +76,6 @@ export default class PreLoader extends Phaser.Scene
         this.add.text(2, 2, 'version: 0.000.001', { fontFamily: 'Tahoma, Times, serif', color: "#000000", fontSize : '10px' }).setScale(this.scale);
 
         this.nameBoard = this.add.image(100, 100, 'nameBoard').setScale(this.scale);
-        this.nameBoard.width = 300;
-        this.nameBoard.height = 138;
         this.nameBoard.setInteractive( { cursor: 'url(img/pointer.png), pointer' } );
 
         const cookie = new Cookies();
