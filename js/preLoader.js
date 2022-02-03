@@ -3,7 +3,7 @@ import Cookies from './Cookies.js';
 export default class PreLoader extends Phaser.Scene
 {
     constructor () {
-        super({key: 'reLoader'});
+        super({key: 'preLoader'});
     }
 
     preload () {
@@ -75,6 +75,7 @@ export default class PreLoader extends Phaser.Scene
 
         this.nameBoard = this.add.image(100, 100, 'nameBoard').setScale(this.scale);
         this.nameBoard.setInteractive( { cursor: 'url(img/pointer.png), pointer' } );
+
         const cookie = new Cookies();
         let name =  cookie.getCookie("player");
         if (name === '') { name = "герой" };

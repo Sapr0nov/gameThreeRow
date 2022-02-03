@@ -289,8 +289,8 @@ export default class GameScene extends Phaser.Scene
                 if (key != null) {
                     this.addProgress(key, 5);
                 }
-
-                if (line.rand && i === line.rand) {
+                console.log('line.rand= ', line.rand, i)
+                if (line.rand !== void 0 && i === line.rand) {
                     this.matrix[element.block.row][element.block.col].key = (line.length === 4) ? this.typesBlock + 1 : this.typesBlock;
                     this.matrix[element.block.row][element.block.col].block.play(this.animsBlock[(line.length === 4) ? this.typesBlock + 1 : this.typesBlock])
                 }else{
@@ -307,11 +307,11 @@ export default class GameScene extends Phaser.Scene
         [-1, 0, 1].forEach( dx => {
             [-1, 0 , 1].forEach ( dy => {
                 if ((block.row + dx >= 0 && block.row + dx < this.MaxRow) && (block.col + dy >= 0 && block.col + dy < this.MaxCol)) {
-                    if (this.matrix[block.row + dx][block.col + dy].key === this.typesBlock)
+                    if (dx !== 0 && dy !== 0 && this.matrix[block.row + dx][block.col + dy].key === this.typesBlock)
                     {
                         this.bombBoom(this.matrix[block.row + dx][block.col + dy].block);
                     }
-                    if (this.matrix[block.row + dx][block.col + dy] === this.typesBlock + 1)
+                    if (dx !== 0 && dy !== 0 && this.matrix[block.row + dx][block.col + dy] === this.typesBlock + 1)
                     {
                         this.tntBoom(this.matrix[block.row + dx][block.col + dy].block);
                     }
@@ -328,11 +328,11 @@ export default class GameScene extends Phaser.Scene
     tntBoom (block) {
         const lines = [];
         for (let i = 0; i < this.MaxCol; i ++) {
-            if (this.matrix[block.row][i].key === this.typesBlock)
+            if (i !== block.col && this.matrix[block.row][i].key === this.typesBlock)
             {
                 this.bombBoom(this.matrix[block.row][i].block);
             }
-            if (this.matrix[block.row][i] === this.typesBlock + 1)
+            if (i !== block.col && this.matrix[block.row][i] === this.typesBlock + 1)
             {
                 this.tntBoom(this.matrix[block.row][i].block);
             }
