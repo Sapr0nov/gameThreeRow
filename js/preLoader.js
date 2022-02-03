@@ -73,6 +73,8 @@ export default class PreLoader extends Phaser.Scene
         this.startBtn.setScale(0.4,0.4);
         this.startBtn.setRotation(-0.1);
 
+        this.add.text(2, 2, 'version: 0.000.001', { fontFamily: 'Tahoma, Times, serif', color: "#000000", fontSize : '10px' }).setScale(this.scale);
+
         this.nameBoard = this.add.image(100, 100, 'nameBoard').setScale(this.scale);
         this.nameBoard.width = 300;
         this.nameBoard.height = 138;
