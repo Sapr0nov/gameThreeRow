@@ -24,7 +24,9 @@ export default class GameScene extends Phaser.Scene
         this.MaxRow = 5;
         this.MaxCol = 7;
         this.baseSize = 64;
-        this.speed = 0.2;
+
+        this.typesBlock = 5; // number different blocks without bombs
+        this.speed = 10;
         this.victoryScore = 1200;
         this.MaxLife = 20;
 
@@ -99,15 +101,16 @@ export default class GameScene extends Phaser.Scene
         this.noprize = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 3) ,'noprize').setScale(this.scale);
         this.noprize.setVisible(false);
 
-        this.bars = Array(5);
-        this.barsProgress = Array(5);
+        this.bars = Array(this.typesBlock);
+        this.barsProgress = Array(this.typesBlock);
+        this.barsPreview = Array(this.typesBlock);
 
-        for (let i = 0; i < 5; i ++) {
+        for (let i = 0; i < this.typesBlock; i ++) {
             this.bars[i] = this.add.image(10 * this.scale, Math.floor(this.game.scale.baseSize.height / 10 + 50 + 40 * i * this.scale) ,'bar').setScale(this.scale);
             this.barsProgress[i] = this.add.image( 10 * this.scale, Math.floor(this.game.scale.baseSize.height / 10 + 50 + 40 * i * this.scale) ,'bar-progress').setScale(this.scale);
-            this.barsPreview = this.add.sprite( 10 * this.scale, Math.floor(this.game.scale.baseSize.height / 10 + 44 + 40 * i * this.scale)).play(this.animsBlock[i]).setScale(this.scale / 3.5);
+            this.barsPreview[i] = this.add.sprite( 10 * this.scale, Math.floor(this.game.scale.baseSize.height / 10 + 44 + 40 * i * this.scale)).play(this.animsBlock[i]).setScale(this.scale / 3.5);
             this.barsProgress[i].setOrigin(0);
-            this.barsPreview.setOrigin(0);
+            this.barsPreview[i].setOrigin(0);
             this.bars[i].setOrigin(0);
         }
    
@@ -129,7 +132,7 @@ export default class GameScene extends Phaser.Scene
 
 
     update() {
-        
+
         this.deltaTime = new Date().getTime() - this.prevtime;
         this.prevtime += this.deltaTime;
         
@@ -139,18 +142,14 @@ export default class GameScene extends Phaser.Scene
 
         this.checkStartEvent('swap', this.swapAnimation.bind(this), this.swapBlocks);
         this.checkStartEvent('drop', this.dropAnimation.bind(this), this.dropBlocks);
-        this.checkStartEvent('energy', this.energyAnimation.bind(this), this.enrgiesBlocks);
-
-        this.checkEndEvent('swap', this.onSwapFinished.bind(this));
-        this.checkEndEvent('drop', this.onDropFinished.bind(this));
-        this.checkEndEvent('energy', this.onEnergyFinished.bind(this));
+        this.checkEndEvent('swap', this.onSwapFinished.bind(this), this.swapBlocks);
+        this.checkEndEvent('drop', this.onDropFinished.bind(this), this.dropBlocks);
 
     }
 
 
     checkStartEvent (name, callback, arr) {
         if ((this.curAnim === '' || this.curAnim === name) && arr.length > 0) {
-            console.log( new Date().getTime(), ' checkStartEvent ', name)
             this.curAnim = name;
             this.isBlocked = true;
             callback(arr);
@@ -158,9 +157,8 @@ export default class GameScene extends Phaser.Scene
     }
 
 
-    checkEndEvent (name, callback) {
-        if (this.curAnim === name && this.swapBlocks.length === 0) {
-            console.log( new Date().getTime(), ' checkEndEvent ', name)
+    checkEndEvent (name, callback, arr) {
+        if (this.curAnim === name && arr.length === 0) {
             callback();
             this.curAnim = '';
         }
@@ -240,7 +238,7 @@ export default class GameScene extends Phaser.Scene
                 }
             })
         }
-        console.log(linesH.length, linesV, lines)
+
         lines.push(...linesH);
         return lines;
     }
@@ -279,18 +277,22 @@ export default class GameScene extends Phaser.Scene
                 line.rand = Math.floor(Math.random()*line.length);
             }
             line.forEach( (element, i ) => {
+                
                 let block = this.add.sprite(element.block.x, element.block.y, 'energy');
                 block.play(this.energy);
-                block.ttl = 300; 
-                this.enrgiesBlocks.push(block);
+                block.on('animationcomplete', () => {
+                    block.destroy();
+                    this.spawn();
+                })
+
                 let key = this.matrix[element.block.row][element.block.col].key;
                 if (key != null) {
                     this.addProgress(key, 5);
                 }
 
                 if (line.rand && i === line.rand) {
-                    this.matrix[element.block.row][element.block.col].key = (line.length === 4) ? 6 : 5;
-                    this.matrix[element.block.row][element.block.col].block.play(this.animsBlock[(line.length === 4) ? 6 : 5])
+                    this.matrix[element.block.row][element.block.col].key = (line.length === 4) ? this.typesBlock + 1 : this.typesBlock;
+                    this.matrix[element.block.row][element.block.col].block.play(this.animsBlock[(line.length === 4) ? this.typesBlock + 1 : this.typesBlock])
                 }else{
                     // get number of type block
                     this.matrix[element.block.row][element.block.col].key = null;                
@@ -300,17 +302,21 @@ export default class GameScene extends Phaser.Scene
         })
     }
 
-    bombBoom(element) {
+    bombBoom (block) {
         const lines = [];
         [-1, 0, 1].forEach( dx => {
             [-1, 0 , 1].forEach ( dy => {
-                if ((element.row + dx >= 0 && element.row + dx < this.MaxRow) && (element.col + dy >= 0 && element.col + dy < this.MaxCol)) {
-                    if (this.matrix[element.row + dx][element.col + dy].key === 5 || this.matrix[element.row + dx][element.col + dy] === 6) //TODO
+                if ((block.row + dx >= 0 && block.row + dx < this.MaxRow) && (block.col + dy >= 0 && block.col + dy < this.MaxCol)) {
+                    if (this.matrix[block.row + dx][block.col + dy].key === this.typesBlock)
                     {
-                        this.bombBoom(this.matrix[element.row + dx][element.col + dy].block);
-                        //check again and big boom
+                        this.bombBoom(this.matrix[block.row + dx][block.col + dy].block);
                     }
-                    lines.push([this.matrix[element.row + dx][element.col + dy]]);
+                    if (this.matrix[block.row + dx][block.col + dy] === this.typesBlock + 1)
+                    {
+                        this.tntBoom(this.matrix[block.row + dx][block.col + dy].block);
+                    }
+
+                    lines.push([this.matrix[block.row + dx][block.col + dy]]);
                 }
             })
             
@@ -318,44 +324,41 @@ export default class GameScene extends Phaser.Scene
         this.collapse(lines);
     }
 
+
+    tntBoom (block) {
+        const lines = [];
+        for (let i = 0; i < this.MaxCol; i ++) {
+            if (this.matrix[block.row][i].key === this.typesBlock)
+            {
+                this.bombBoom(this.matrix[block.row][i].block);
+            }
+            if (this.matrix[block.row][i] === this.typesBlock + 1)
+            {
+                this.tntBoom(this.matrix[block.row][i].block);
+            }
+            // check doble block! TODO
+            lines.push([this.matrix[block.row][i]]);
+        }               
+        this.collapse(lines);
+        return;
+    }
+
+
     clicked (element) {
-        
-        if (this.matrix[element.row][element.col].key === 6)  {
-            //bomb
+
+        if (this.matrix[element.row][element.col].key === this.typesBlock + 1)  {
             this.bombBoom(element);
-
-
             return;
         }
 
-
-        if (this.matrix[element.row][element.col].key === 5) {
-            //tnt
-            const lines = [];
-            for (let i = 0; i < this.MaxCol; i ++) {
-                if (this.matrix[element.row][i].key === 5 || this.matrix[element.row][i] === 6) //TODO
-                {
-                    //check again and big boom
-                }
-                lines.push([this.matrix[element.row][i]]);
-            }               
-            this.collapse(lines);
+        if (this.matrix[element.row][element.col].key === this.typesBlock) {
+            this.tntBoom(element);
             return;
         }
 
-        if (this.firstSelBlock === element) {   
-            element.play(this.animsBlock[this.matrix[element.row][element.col].key]);
-            this.firstSelBlock = null; 
-            return;
-        }
         // checked neighborhood
         if ( Math.abs(this.firstSelBlock.row - element.row) + Math.abs(this.firstSelBlock.col - element.col) === 1 ) {
             this.makeSwap(this.firstSelBlock, element);
-        }else{
-            if (this.firstSelBlock) {
-                this.firstSelBlock.play(this.animsBlock[this.matrix[this.firstSelBlock.row][this.firstSelBlock.col].key]);
-                this.firstSelBlock = element;    
-            }
         }
     }
 
@@ -364,9 +367,11 @@ export default class GameScene extends Phaser.Scene
 
         let key1 = this.animsBlock[this.matrix[el1.row][el1.col].key];
         let key2 = this.animsBlock[this.matrix[el2.row][el2.col].key];
-        this.firstSelBlock = null; 
-        if (key1 < 5) { el1.play(key1) }
-        if (key2 < 5) { el2.play(key2) }
+
+        if (key1 < this.typesBlock && key2 < this.typesBlock) { 
+            el1.play(key1);  
+            el2.play(key2);  
+        }
         
         [el1.dx, el1.dy, el2.dx, el2.dy] = [(el2.x - el1.x) / 24, (el2.y - el1.y) / 24, (el1.x - el2.x) / 24, (el1.y - el2.y) / 24];
         [el1.newX, el1.newY, el2.newX, el2.newY] = [el2.x, el2.y, el1.x, el1.y];
@@ -430,7 +435,7 @@ export default class GameScene extends Phaser.Scene
 
 
     newBlock(curRow, curCol, posRow = curRow, posCol = curCol) {
-        let key = Math.floor(Math.random()*5);
+        let key = Math.floor(Math.random() * this.typesBlock);
         this.x = this.ofsetX + this.step * posCol;
         this.y = this.ofsetY + this.step * posRow;
         let block = this.add.sprite(this.x, this.y, 'blocks');
@@ -445,34 +450,40 @@ export default class GameScene extends Phaser.Scene
         
         block.on('pointerdown', () => {
             if (this.isBlocked) return;
-
-            block.stop();
-            if (this.firstSelBlock == null) {     
-                this.firstSelBlock = block;
-             } 
+            
+            if (this.firstSelBlock != null) { this.firstSelBlock.setRotation(0) };
+            this.firstSelBlock = block;
+            this.firstSelBlock.setRotation(Math.PI / 4)
         })
         
-        block.on('pointerup', (e) => {
+        block.on('pointerup', () => {
             if (this.isBlocked || !this.firstSelBlock) return;
             
             // checked click on bomb
-            if (this.matrix[block.row][block.col].key > 4) {
+            if (this.matrix[block.row][block.col].key >= this.typesBlock) {
                 this.clicked(block);
+                return;
             }
 
             // checked direction of swipe
-            if (Math.abs((e.upX - e.downX)) < this.step && Math.abs(2*(e.upY - e.downY)) > this.step ) {
-                let nextRow = (e.upX < e.downX) ? this.firstSelBlock.row - 1 : this.firstSelBlock.row + 1;
-                if (nextRow < this.MaxRow) {
-                    this.clicked(this.matrix[nextRow][this.firstSelBlock.col].block);
-                }
-            } else if (Math.abs((e.upX - e.downX)) > this.step && Math.abs(2*(e.upY - e.downY)) < this.step ) {
-                let nextCol = (e.upY < e.downY) ? this.firstSelBlock.col - 1 : this.firstSelBlock.col + 1;
-                if (nextCol < this.MaxCol) {  
-                    this.clicked(this.matrix[this.firstSelBlock.row][nextCol].block);
-                }
+            if ( (this.firstSelBlock.row !== block.row) && (this.firstSelBlock.col !== block.col) ) {
+                return;
             }
+            
+            let nextRow = this.firstSelBlock.row;
+            let nextCol = this.firstSelBlock.col;
 
+            if (this.firstSelBlock.row === block.row) {
+                nextCol += ( this.firstSelBlock.col < block.col ) ? 1 : -1;
+            }
+            if (this.firstSelBlock.col === block.col) {
+                nextRow += ( this.firstSelBlock.row < block.row ) ? 1 : -1;
+            }
+            
+            this.clicked(this.matrix[nextRow][nextCol].block);
+  
+            if (this.firstSelBlock !== null) { this.firstSelBlock.setRotation(0); }
+            this.firstSelBlock == null;
         })
 
         block.on('pointerover', () => {
@@ -490,20 +501,27 @@ export default class GameScene extends Phaser.Scene
 
     addProgress (number, progress) {
         //bomb
-        if (number > 4 ) {  return; }
+        if (number >= this.typesBlock ) {  return; }
         
         let newValue = this.barsProgress[number].value + progress;
+
+        if (newValue > 100) {
+            newValue = 100;
+            console.log('onFull(number)', number);
+            this.barsPreview[number].setScale(this.scale / 3);
+            this.barsPreview[number].setInteractive( { cursor: 'url(img/pointer.png), pointer' } );
+            this.barsPreview[number].on('pointerdown', () => {
+                this.gameScore += 100;
+                this.barsProgress[number].value = 0;
+                this.resetProgress(number);
+                this.barsPreview[number].disableInteractive();
+            })
+        }
+
         this.barsProgress[number].value = newValue;
         this.barsProgress[number].setScale( newValue / 100 * this.scale, this.scale );
         this.barsProgress[number].x = 20 * this.scale;
 
-        if (newValue > 100) {
-            console.log('onFull(number)', number);
-            this.gameScore += 100;
-            this.barsProgress[number].value = 0;
-            this.resetProgress(number);
-        }
-        
         this.gameScore += progress;
         
         if (this.gameScore < 10 ) {
@@ -573,9 +591,10 @@ export default class GameScene extends Phaser.Scene
 
 
     dropAnimation(blocks) {
+
         blocks.forEach( (block, index) => {
             if (block.newY > block.y) {
-                block.y += block.dy * this.deltaTime * this.speed;
+                block.y += block.dy * this.deltaTime / this.speed;
             }else{
                 block.y = Math.floor(block.newY);
                 blocks.splice(index,1);
@@ -585,6 +604,7 @@ export default class GameScene extends Phaser.Scene
 
 
     swapAnimation(blocks) {
+
         blocks.forEach( (block, index) => {
             /* normalize coords */
             let signX = (block.dx) ? block.dx / Math.abs(block.dx) : 1;
@@ -592,8 +612,8 @@ export default class GameScene extends Phaser.Scene
 
             // motion
             if (block.x * signX < block.newX * signX || block.y * signY < block.newY * signY) {
-                block.x += block.dx * this.deltaTime * this.speed;
-                block.y += block.dy * this.deltaTime * this.speed;
+                block.x += block.dx * this.deltaTime / this.speed;
+                block.y += block.dy * this.deltaTime / this.speed;
             }else{
               [block.x, block.y] = [block.newX, block.newY];
 
@@ -608,16 +628,6 @@ export default class GameScene extends Phaser.Scene
         })
     }
 
-
-    energyAnimation (blocks) {
-        blocks.forEach( (block, index) => {
-            block.ttl = block.ttl - this.deltaTime * this.speed * 5;
-            if (block.ttl < 0) {
-                block.destroy();
-                blocks.splice(index,1);
-            }
-        })
-    }
 
 
     copyMatrix (matrix) {
@@ -638,7 +648,6 @@ export default class GameScene extends Phaser.Scene
 
 
     onDropFinished () {
-        this.normalize();
         if (this.checkWin()) {
              return;
         }
@@ -648,13 +657,8 @@ export default class GameScene extends Phaser.Scene
     }
 
 
-    onEnergyFinished () {
-        this.spawn();
-    }
-
-
     normalize () {
-        this.test();
+//        this.test();
         for ( let curRow = 0; curRow < this.MaxRow; curRow ++) {
             for ( let curCol = 0; curCol < this.MaxCol; curCol ++) {
                 this.matrix[curRow][curCol].block.col = curCol;
