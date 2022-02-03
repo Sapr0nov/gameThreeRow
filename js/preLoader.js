@@ -78,7 +78,8 @@ export default class PreLoader extends Phaser.Scene
 
         const cookie = new Cookies();
         let name =  cookie.getCookie("player");
-        if (name === '') { name = "герой" };
+
+        if (name === void 0) { name = "герой" };
         this.inputName = this.add.text(85, 90, name, { fontFamily: 'Tahoma, Times, serif', fontSize : '32px' }).setScale(this.scale);
         this.htmlInput = document.createElement("input");
         this.htmlInput.style.display = "none";

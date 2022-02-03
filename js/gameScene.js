@@ -60,11 +60,11 @@ export default class GameScene extends Phaser.Scene
     create () {
 
         this.dropBlocks = [];
-        this.enrgiesBlocks = [];
         this.swapBlocks = [];
         this.curAnim = '';
         this.gameScore = 0;
-        
+        this.collapseBlocks = new Set();
+
         this.input.keyboard.on('keydown', (e) => {
             if (e.key === 't') {
                 this.test();
@@ -77,12 +77,11 @@ export default class GameScene extends Phaser.Scene
         this.keys = ['block_air','block_arthropoda','block_demon','block_earth','block_fire','block_flash','block_forest','block_ice','block_lindworm','block_water','bomb','tnt'];
 
         this.energy = this.anims.create({ key: 'energy', delay :0, hideOnComplete: true, frames: this.anims.generateFrameNames('energy', { prefix: 'energy_', end: 15, zeroPad: 4 }), repeat: 0 });
-        this.animsBlock = [];
         this.keys.forEach( name => {
             this[name] = this.anims.create({ key: name, frames: this.anims.generateFrameNames('blocks', { prefix: name + '_', end: 0, zeroPad: 4 }), repeat: -1 });
         })
         // Handle form color for stage
-        this.animsBlock = [this.block_air, this.block_fire, this.block_water, this.block_forest, this.block_demon, this.tnt, this.bomb];
+        this.animsBlock = [this.block_air, this.block_fire, this.block_water, this.block_forest, this.block_demon, this.bomb, this.tnt];
 
         this.bg = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 2) ,'background').setScale(this.scale);
         this.deskLife = this.add.image(140 * this.scale, 70 * this.scale, 'desk-life').setScale(this.scale);
@@ -120,12 +119,12 @@ export default class GameScene extends Phaser.Scene
                 [this.matrix[curRow][curCol].block, this.matrix[curRow][curCol].key] = this.newBlock(curRow, curCol);
             }
         }
-        
-        let lines = this.checkMatches(this.matrix);
-        while (lines.length > 0) {
-            this.collapse(lines);
+
+        this.collapseBlocks = new Set(...this.checkMatches(this.matrix));
+        while (this.collapseBlocks.size > 0) {
+            this.collapse([this.collapseBlocks]);
             this.spawn();
-            lines = this.checkMatches(this.matrix);
+            this.collapseBlocks = new Set(...this.checkMatches(this.matrix));
         }
         this.normalize();
     }
@@ -252,7 +251,7 @@ export default class GameScene extends Phaser.Scene
     compareLine (arr1, arr2) {
         let result = -1;
         arr1.forEach((el1, index) => {
-            if (result) {
+            if (result > 0) {
                 return;
             }
             arr2.forEach(el2 => 
@@ -277,10 +276,13 @@ export default class GameScene extends Phaser.Scene
                 line.rand = Math.floor(Math.random()*line.length);
             }
             line.forEach( (element, i ) => {
-                
+                if (element.block === void 0) {
+                    return;
+                }
+
                 let block = this.add.sprite(element.block.x, element.block.y, 'energy');
                 block.play(this.energy);
-                block.on('animationcomplete', () => {
+                block.on('animationcomplete', () => {   
                     block.destroy();
                     this.spawn();
                 })
@@ -291,8 +293,8 @@ export default class GameScene extends Phaser.Scene
                 }
 
                 if (line.rand !== void 0 && i === line.rand) {
-                    this.matrix[element.block.row][element.block.col].key = (line.length === 4) ? this.typesBlock + 1 : this.typesBlock;
-                    this.matrix[element.block.row][element.block.col].block.play(this.animsBlock[(line.length === 4) ? this.typesBlock + 1 : this.typesBlock])
+                    this.matrix[element.block.row][element.block.col].key = (line.length === 4) ? this.typesBlock : this.typesBlock + 1;
+                    this.matrix[element.block.row][element.block.col].block.play(this.animsBlock[(line.length === 4) ? this.typesBlock : this.typesBlock + 1])
                 }else{
                     // get number of type block
                     this.matrix[element.block.row][element.block.col].key = null;                
@@ -300,59 +302,79 @@ export default class GameScene extends Phaser.Scene
                 }
             })
         })
+        this.collapseBlocks = new Set();
     }
 
+
     bombBoom (block) {
-        const lines = [];
+        
         [-1, 0, 1].forEach( dx => {
             [-1, 0 , 1].forEach ( dy => {
+                // if damage block on field
                 if ((block.row + dx >= 0 && block.row + dx < this.MaxRow) && (block.col + dy >= 0 && block.col + dy < this.MaxCol)) {
+
+                    // not current block and block = bomb
                     if (dx !== 0 && dy !== 0 && this.matrix[block.row + dx][block.col + dy].key === this.typesBlock)
                     {
-                        this.bombBoom(this.matrix[block.row + dx][block.col + dy].block);
+                        // block not in Set
+                        if (! this.collapseBlocks.has(this.matrix[block.row + dx][block.col + dy])) {
+                            this.collapseBlocks.add(this.matrix[block.row + dx][block.col + dy]);
+                            this.bombBoom(this.matrix[block.row + dx][block.col + dy].block);
+                        }
                     }
-                    if (dx !== 0 && dy !== 0 && this.matrix[block.row + dx][block.col + dy] === this.typesBlock + 1)
+                    // not current block and block = tnt
+                    if (dx !== 0 && dy !== 0 && this.matrix[block.row + dx][block.col + dy].key === this.typesBlock + 1)
                     {
-                        this.tntBoom(this.matrix[block.row + dx][block.col + dy].block);
+                        // element (block and keys) not in Set
+                        if (! this.collapseBlocks.has(this.matrix[block.row + dx][block.col + dy])) {
+                            this.collapseBlocks.add(this.matrix[block.row + dx][block.col + dy]);
+                            this.tntBoom(this.matrix[block.row + dx][block.col + dy].block);
+                        }
                     }
-
-                    lines.push([this.matrix[block.row + dx][block.col + dy]]);
+                    
+                    this.collapseBlocks.add(this.matrix[block.row + dx][block.col + dy]);
                 }
             })
             
         })
-        this.collapse(lines);
     }
 
 
     tntBoom (block) {
-        const lines = [];
+
         for (let i = 0; i < this.MaxCol; i ++) {
             if (i !== block.col && this.matrix[block.row][i].key === this.typesBlock)
             {
-                this.bombBoom(this.matrix[block.row][i].block);
+                // block not in Set
+                if (! this.collapseBlocks.has(this.matrix[block.row][i])) {
+                    this.collapseBlocks.add(this.matrix[block.row][i]);
+                    this.bombBoom(this.matrix[block.row][i].block);
+                }
             }
             if (i !== block.col && this.matrix[block.row][i] === this.typesBlock + 1)
             {
-                this.tntBoom(this.matrix[block.row][i].block);
+                // block not in Set
+                if (! this.collapseBlocks.has(this.matrix[block.row][i])) {
+                    this.collapseBlocks.add(this.matrix[block.row][i]);
+                    this.tntBoom(this.matrix[block.row][i].block);
+                }
             }
-            // check doble block! TODO
-            lines.push([this.matrix[block.row][i]]);
-        }               
-        this.collapse(lines);
-        return;
+            this.collapseBlocks.add(this.matrix[block.row][i]);
+        }
     }
 
 
     clicked (element) {
 
-        if (this.matrix[element.row][element.col].key === this.typesBlock + 1)  {
+        if (this.matrix[element.row][element.col].key === this.typesBlock )  {
             this.bombBoom(element);
+            this.collapse([this.collapseBlocks]);
             return;
         }
 
-        if (this.matrix[element.row][element.col].key === this.typesBlock) {
+        if (this.matrix[element.row][element.col].key === this.typesBlock + 1 ) {
             this.tntBoom(element);
+            this.collapse([this.collapseBlocks]);
             return;
         }
 
@@ -435,7 +457,7 @@ export default class GameScene extends Phaser.Scene
 
 
     newBlock(curRow, curCol, posRow = curRow, posCol = curCol) {
-        let key = Math.floor(Math.random() * this.typesBlock);
+        let key = Math.floor(Math.random() * (this.typesBlock + 2)); // TODO remove +2 - added for test bomb
         this.x = this.ofsetX + this.step * posCol;
         this.y = this.ofsetY + this.step * posRow;
         let block = this.add.sprite(this.x, this.y, 'blocks');
