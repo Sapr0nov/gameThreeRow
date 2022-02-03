@@ -74,15 +74,14 @@ export default class PreLoader extends Phaser.Scene
         this.startBtn.setRotation(-0.1);
 
         this.nameBoard = this.add.image(100, 100, 'nameBoard').setScale(this.scale);
-        console.log(this.nameBoard)
         this.nameBoard.width = 300;
         this.nameBoard.height = 138;
         this.nameBoard.setInteractive( { cursor: 'url(img/pointer.png), pointer' } );
 
         const cookie = new Cookies();
-        let name =  cookie.getCookie("player");
+        let name = cookie.getCookie("player");
 
-        if (name === void 0) { name = "герой" };
+        if (name === void 0) { name = "герой" }
         this.inputName = this.add.text(85, 90, name, { fontFamily: 'Tahoma, Times, serif', fontSize : '32px' }).setScale(this.scale);
         this.htmlInput = document.createElement("input");
         this.htmlInput.classList.add("mobileInput");
@@ -90,8 +89,11 @@ export default class PreLoader extends Phaser.Scene
         this.htmlInput.style.marginLeft = Math.floor( (document.body.clientWidth - this.game.canvas.width ) / 2) +"px";
         document.body.appendChild(this.htmlInput);
 
-        this.htmlInput.addEventListener('keydown', () => {
+        this.htmlInput.addEventListener('keyup', () => {
             const regexp = /[^а-яa-zЁ]/ig;
+            if (!this.inputNameActive ) {
+                return false;
+            }
             
             if (this.htmlInput.value.length > 10) {
                 this.htmlInput.value = this.htmlInput.value.substring(0, 10);
@@ -100,24 +102,12 @@ export default class PreLoader extends Phaser.Scene
             this.inputName.text = this.htmlInput.value; 
         })
 
-
-
         this.inputNameActive = false;
+
         this.input.keyboard.on('keydown', (e) => {
-            
-            const regexp = /[а-яa-zЁ]/i;
-            
             if (!this.inputNameActive ) {
                 return false;
             }
-
-            if (e.key === 'Backspace') {
-                if (this.inputName.text.length === 1 ) {
-                    this.inputName.setText('_');
-                }else {
-                    this.inputName.setText(this.inputName.text.substring(0,this.inputName.text.length-1));
-                }
-            };
 
             if (e.key === 'Enter' || e.key === 'Escape') {
                 this.inputNameActive = false;
@@ -125,26 +115,13 @@ export default class PreLoader extends Phaser.Scene
                 this.inputName.text =  this.htmlInput.value;
                 cookie.setCookie('player', this.inputName.text,  {secure: true, 'max-age': 360000});
             }
-
-            if (this.inputName.text.length > 10 || e.key.length > 1 || !regexp.test(e.key)) {
-                return;
-            }
-
-            if (this.inputName.text === '_') {
-                this.inputName.text = '';
-            }
-            this.inputName.setText(this.inputName.text + e.key);
         })
 
         this.nameBoard.on('pointerup', () => {
-            console.log('btn')
             this.htmlInput.style.display = "block";
             this.htmlInput.click();
             this.htmlInput.focus();
             this.inputNameActive = true;
-
-            // show btn ok  for  this.inputNameActive false
-
         })
 
     }
