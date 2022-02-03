@@ -1,7 +1,9 @@
-export default class preLoader extends Phaser.Scene
+import Cookies from './Cookies.js';
+
+export default class PreLoader extends Phaser.Scene
 {
     constructor () {
-        super({key: 'preLoader'});
+        super({key: 'reLoader'});
     }
 
     preload () {
@@ -11,6 +13,7 @@ export default class preLoader extends Phaser.Scene
         this.load.atlas('earRight', './img/earRight.png', './img/earRight.json');
         this.load.atlas('earLeft', './img/earLeft.png', './img/earLeft.json');
         this.load.image('play', './img/play.png');
+        this.load.svg('nameBoard', './img/desk_empty.svg');
         this.isLandscape = false;
     }
 
@@ -69,6 +72,56 @@ export default class preLoader extends Phaser.Scene
         
         this.startBtn.setScale(0.4,0.4);
         this.startBtn.setRotation(-0.1);
+
+        this.nameBoard = this.add.image(100, 100, 'nameBoard').setScale(this.scale);
+        this.nameBoard.setInteractive( { cursor: 'url(img/pointer.png), pointer' } );
+        const cookie = new Cookies();
+        let name =  cookie.getCookie("player");
+        if (name === '') { name = "герой" };
+        this.inputName = this.add.text(85, 90, name, { fontFamily: 'Tahoma, Times, serif', fontSize : '32px' }).setScale(this.scale);
+        this.htmlInput = document.createElement("input");
+        this.htmlInput.style.display = "none";
+        document.body.appendChild(this.htmlInput);
+
+        this.inputNameActive = false;
+        this.input.keyboard.on('keydown', (e) => {
+            
+            const regexp = /[а-яa-zЁ]/i;
+            
+            if (!this.inputNameActive ) {
+                return false;
+            }
+
+            if (e.key === 'Backspace') {
+                if (this.inputName.text.length === 1 ) {
+                    this.inputName.setText('_');
+                }else {
+                    this.inputName.setText(this.inputName.text.substring(0,this.inputName.text.length-1));
+                }
+            };
+
+            if (e.key === 'Enter' || e.key === 'Escape') {
+                this.inputNameActive = false;
+                cookie.setCookie('player', this.inputName.text,  {secure: true, 'max-age': 360000});
+            }
+
+            if (this.inputName.text.length > 10 || e.key.length > 1 || !regexp.test(e.key)) {
+                return;
+            }
+
+            if (this.inputName.text === '_') {
+                this.inputName.text = '';
+            }
+            this.inputName.setText(this.inputName.text + e.key);
+        })
+
+        this.nameBoard.on('pointerup', () => {
+            this.htmlInput.focus();
+            this.inputNameActive = true;
+            // show btn ok  for  this.inputNameActive false
+
+        })
+
     }
 
     update() {

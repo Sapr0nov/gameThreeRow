@@ -1,7 +1,7 @@
 'use strict'
-import preLoader from './preLoader.js';
-import gameScene from './gameScene.js';
-import mainScene from './mainScene.js';
+import PreLoader from './PreLoader.js';
+import GameScene from './GameScene.js';
+import MainScene from './MainScene.js';
 
 document.addEventListener("DOMContentLoaded", function(e) {
     init();
@@ -30,7 +30,7 @@ function init() {
         width: widthCanvas,
         height: heightCanvas,
         disableContextMenu: true,
-        scene: [ preLoader, gameScene ],
+        scene: [ PreLoader, GameScene ],
         banner: false
     };
     

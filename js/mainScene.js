@@ -1,4 +1,4 @@
-export default class mainScene extends Phaser.Scene
+export default class MainScene extends Phaser.Scene
 {
     constructor () {
         super({key: 'mainScene'});
