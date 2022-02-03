@@ -104,6 +104,7 @@ export default class PreLoader extends Phaser.Scene
 
             if (e.key === 'Enter' || e.key === 'Escape') {
                 this.inputNameActive = false;
+                this.htmlInput.style.display = "none";
                 cookie.setCookie('player', this.inputName.text,  {secure: true, 'max-age': 360000});
             }
 
@@ -118,8 +119,11 @@ export default class PreLoader extends Phaser.Scene
         })
 
         this.nameBoard.on('pointerup', () => {
+            this.htmlInput.style.display = "none";
+            this.htmlInput.click();
             this.htmlInput.focus();
             this.inputNameActive = true;
+
             // show btn ok  for  this.inputNameActive false
 
         })
