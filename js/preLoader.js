@@ -74,6 +74,9 @@ export default class PreLoader extends Phaser.Scene
         this.startBtn.setRotation(-0.1);
 
         this.nameBoard = this.add.image(100, 100, 'nameBoard').setScale(this.scale);
+        console.log(this.nameBoard)
+        this.nameBoard.width = 300;
+        this.nameBoard.height = 138;
         this.nameBoard.setInteractive( { cursor: 'url(img/pointer.png), pointer' } );
 
         const cookie = new Cookies();
@@ -82,8 +85,22 @@ export default class PreLoader extends Phaser.Scene
         if (name === void 0) { name = "герой" };
         this.inputName = this.add.text(85, 90, name, { fontFamily: 'Tahoma, Times, serif', fontSize : '32px' }).setScale(this.scale);
         this.htmlInput = document.createElement("input");
-        this.htmlInput.style.display = "none";
+        this.htmlInput.classList.add("mobileInput");
+        this.htmlInput.style.width = this.game.canvas.width - 12 + "px";
+        this.htmlInput.style.marginLeft = Math.floor( (document.body.clientWidth - this.game.canvas.width ) / 2) +"px";
         document.body.appendChild(this.htmlInput);
+
+        this.htmlInput.addEventListener('keydown', () => {
+            const regexp = /[^а-яa-zЁ]/ig;
+            
+            if (this.htmlInput.value.length > 10) {
+                this.htmlInput.value = this.htmlInput.value.substring(0, 10);
+            } 
+            this.htmlInput.value = this.htmlInput.value.replaceAll(regexp,"");
+            this.inputName.text = this.htmlInput.value; 
+        })
+
+
 
         this.inputNameActive = false;
         this.input.keyboard.on('keydown', (e) => {
@@ -105,6 +122,7 @@ export default class PreLoader extends Phaser.Scene
             if (e.key === 'Enter' || e.key === 'Escape') {
                 this.inputNameActive = false;
                 this.htmlInput.style.display = "none";
+                this.inputName.text =  this.htmlInput.value;
                 cookie.setCookie('player', this.inputName.text,  {secure: true, 'max-age': 360000});
             }
 

@@ -28,6 +28,15 @@
     cursor: url(../img/cursor.png), default;
 }
 
+.mobileInput {
+    display: none;
+    position: absolute;
+    bottom: 0;
+    height: 42px;
+    font-size: 22px;
+    padding: 6px;
+}
+
 @media screen and (max-width: 800px) {
     .pleaseReturn {
         display: block;

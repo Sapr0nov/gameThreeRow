@@ -164,7 +164,7 @@ export default class GameScene extends Phaser.Scene
     }
 
     /**
-     * return Array of  .
+     * return Array of  oblects.
      *
      * @param {Array[][]} matrix tested matrix.
      * @return {Array[]} array of {blocks : Sprite, key : Int} (blocks for delete).
@@ -189,6 +189,7 @@ export default class GameScene extends Phaser.Scene
                     curKey = matrix[curRow][curCol].key;
                     line.push(matrix[curRow][curCol]);
                 }
+
                 if (curRow === this.MaxRow-1) {
                     if (line.length >= 3) { 
                         linesV.push(line);
@@ -310,30 +311,33 @@ export default class GameScene extends Phaser.Scene
         
         [-1, 0, 1].forEach( dx => {
             [-1, 0 , 1].forEach ( dy => {
+                
                 // if damage block on field
-                if ((block.row + dx >= 0 && block.row + dx < this.MaxRow) && (block.col + dy >= 0 && block.col + dy < this.MaxCol)) {
-
-                    // not current block and block = bomb
-                    if (dx !== 0 && dy !== 0 && this.matrix[block.row + dx][block.col + dy].key === this.typesBlock)
-                    {
-                        // block not in Set
-                        if (! this.collapseBlocks.has(this.matrix[block.row + dx][block.col + dy])) {
-                            this.collapseBlocks.add(this.matrix[block.row + dx][block.col + dy]);
-                            this.bombBoom(this.matrix[block.row + dx][block.col + dy].block);
-                        }
-                    }
-                    // not current block and block = tnt
-                    if (dx !== 0 && dy !== 0 && this.matrix[block.row + dx][block.col + dy].key === this.typesBlock + 1)
-                    {
-                        // element (block and keys) not in Set
-                        if (! this.collapseBlocks.has(this.matrix[block.row + dx][block.col + dy])) {
-                            this.collapseBlocks.add(this.matrix[block.row + dx][block.col + dy]);
-                            this.tntBoom(this.matrix[block.row + dx][block.col + dy].block);
-                        }
-                    }
-                    
-                    this.collapseBlocks.add(this.matrix[block.row + dx][block.col + dy]);
+                if (this.matrix[block.row + dx][block.col + dy] === void 0) {
+                    return;
                 }
+                
+                // not current block and block = bomb
+                if ((dx !== 0 && dy !== 0) && this.matrix[block.row + dx][block.col + dy].key === this.typesBlock)
+                {
+                    // block not in Set
+                    if (! this.collapseBlocks.has(this.matrix[block.row + dx][block.col + dy])) {
+                        this.collapseBlocks.add(this.matrix[block.row + dx][block.col + dy]);
+                        this.bombBoom(this.matrix[block.row + dx][block.col + dy].block);
+                    }
+                }
+                // not current block and block = tnt
+                if (dx !== 0 && dy !== 0 && this.matrix[block.row + dx][block.col + dy].key === this.typesBlock + 1)
+                {
+                    // element (block and keys) not in Set
+                    if (! this.collapseBlocks.has(this.matrix[block.row + dx][block.col + dy])) {
+                        this.collapseBlocks.add(this.matrix[block.row + dx][block.col + dy]);
+                        this.tntBoom(this.matrix[block.row + dx][block.col + dy].block);
+                    }
+                }
+                
+                this.collapseBlocks.add(this.matrix[block.row + dx][block.col + dy]);
+                
             })
             
         })
@@ -473,7 +477,7 @@ export default class GameScene extends Phaser.Scene
         block.on('pointerdown', () => {
             if (this.isBlocked) return;
             
-            if (this.firstSelBlock != null) { this.firstSelBlock.setRotation(0) };
+            if (this.firstSelBlock != null) { this.firstSelBlock.setRotation(0) }
             this.firstSelBlock = block;
             this.firstSelBlock.setRotation(Math.PI / 4)
         })
@@ -505,7 +509,7 @@ export default class GameScene extends Phaser.Scene
             this.clicked(this.matrix[nextRow][nextCol].block);
   
             if (this.firstSelBlock !== null) { this.firstSelBlock.setRotation(0); }
-            this.firstSelBlock == null;
+            this.firstSelBlock = null;
         })
 
         block.on('pointerover', () => {
@@ -680,7 +684,7 @@ export default class GameScene extends Phaser.Scene
 
 
     normalize () {
-//        this.test();
+
         for ( let curRow = 0; curRow < this.MaxRow; curRow ++) {
             for ( let curCol = 0; curCol < this.MaxCol; curCol ++) {
                 this.matrix[curRow][curCol].block.col = curCol;
