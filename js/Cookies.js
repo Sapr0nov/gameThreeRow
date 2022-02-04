@@ -37,8 +37,4 @@ export default class Cookies extends Phaser.Scene
             'max-age': -1
         })
     }
-    
-    
-    
-    
 }
