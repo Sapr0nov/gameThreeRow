@@ -125,8 +125,9 @@ export default class PreLoader extends Phaser.Scene
                 if (this.chat.open) {
                     this.htmlInput2.style.display = "none";
                     this.chatUI.input.text = this.htmlInput2.value;
+                    this.chat.sendMsg(this.player.name, this.chatUI.input.text);
                     // send msg THEN clear TODO
-                    this.showHistory(this.htmlInput2.value);
+                //    this.showHistory(this.htmlInput2.value);
                     this.htmlInput2.value = '';
                     this.chatUI.input.text = this.htmlInput2.value;
                 }
@@ -182,9 +183,10 @@ export default class PreLoader extends Phaser.Scene
             this.chatUI.input.text = this.htmlInput2.value;
             // send msg THEN clear TODO
             this.showHistory(this.htmlInput2.value);
+            let msg = this.htmlInput2.value;
             this.htmlInput2.value = '';
             this.chatUI.input.text = this.htmlInput2.value;
-            console.log('sending...')
+            this.chat.sendMsg(this.player.name, msg);
         })
 
         this.delay = 0;
@@ -196,6 +198,10 @@ export default class PreLoader extends Phaser.Scene
         })
 
         this.chat = new Chat( this.chatBtn);
+        
+        this.chat.chatInit(this.player.name);
+        this.lastCheck = new Date();
+        this.lastCheck.setDate( this.lastCheck.getDate() - 1);
     }
     
     update() {
@@ -203,10 +209,9 @@ export default class PreLoader extends Phaser.Scene
         this.prevtime += this.deltaTime;
         
         this.delay += this.deltaTime;
-        if (this.delay > 100) {
+        if (this.delay > 3000) {
             this.delay = 0;
-        //    this.chat.checkMsg();
-        //    this.showHistory('message')       
+            this.checkMsg(this.lastCheck);
         }
 
         this.earsAnimation();
@@ -231,12 +236,34 @@ export default class PreLoader extends Phaser.Scene
         this.earR.setScale(this.scale, this.scale);
     }
 
+
+    checkMsg(lastCheck) {
+        let req = this.chat.getMsg(lastCheck);
+        let newTime = new Date();
+        req.onreadystatechange = () => {
+            if (req.readyState === 4) {
+                if (req.status == 200 && req.status < 300) {
+                    const arrMsg = req.response['messages'];  
+                    if (Array.isArray(arrMsg) && arrMsg.length > 0) {
+                        arrMsg.forEach (msg => {
+                            this.showHistory(msg);
+                            this.lastCheck = newTime;
+                        })
+                    }
+                }
+            }
+        }
+    }
+
+
     showHistory(msg) {
         this.chatUI.history.height = 400;
         this.chatCamera.setVisible(false);
         if (this.chat.open) {
             this.chatCamera.setVisible(true);
-            let addString = this.player.name + ": " + msg + " \r\n";
+            console.log(msg);
+            let time = msg.time.split(" ")[1].substring(0,5);
+            let addString = "[" + time + "] " + msg.firstname + ": " + msg.body + " \r\n";
             let result = "";
 
             if (addString.length > 27) {

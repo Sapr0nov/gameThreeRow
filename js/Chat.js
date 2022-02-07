@@ -5,28 +5,20 @@ export default class Chat extends Phaser.Scene
     constructor (btn) {
         super({key: 'chat'});
         this.chatBtn = btn;
+        this.cookies = new Cookies();
     }
 
     create () {
         
     this.uid = 0;
 
-    this.time = new Date();
-    this.time.setDate(this.time.getDate() - 1);
-    this.time = this.time.toMysqlFormat();
-
-    if (getCookie('chatID')) {
-        this.uid = getCookie('chatID');
-        this.name = getCookie('chatName');
-        this.jwt = getCookie('jwt');
+    if (this.cookies.getCookie('chatID')) {
+        this.uid = this.cookies.getCookie('chatID');
+        this.name = this.cookies.getCookie('chatName');
+        this.jwt = this.cookies.getCookie('jwt');
     }else{
-        chatInit();
+        this.chatInit('Гость');
     }
-
-    setInterval(() => {
-        getMsg();
-    }, 2500);
-
 
         this.prevtime = new Date().getTime(); 
         this.deltaTime = 0;
@@ -49,7 +41,7 @@ export default class Chat extends Phaser.Scene
         })
 
         const cookie = new Cookies();
-        this.name = cookie.getCookie("player");
+        this.name = this.cookies.getCookie("player");
         const canvasWidth = document.querySelector('canvas').clientWidth;
         this.htmlInput = document.createElement("input");
         this.htmlInput.classList.add("mobileInput");
@@ -69,46 +61,31 @@ export default class Chat extends Phaser.Scene
 
     }
 
-    getMsg() {
-        console.log('lf msg');
-    }
-    checkMsg() {
-        console.log('new msg!');
-    }
-
-    /* format Date for SQL */
-    twoDigits(d) {
-        if(0 <= d && d < 10) return "0" + d.toString();
-        if(-10 < d && d < 0) return "-0" + (-1*d).toString();
-        return d.toString();
-    }
-
 
     sendMsg(name, body) {
 
         const req = new XMLHttpRequest();
-        req.open('POST', '/api/message_create.php', true);
+        req.open('POST', 'https://chat.stacksite.ru/api/message_create.php', true);
         req.setRequestHeader('accept', 'application/json');
         req.type = 'json';
         req.responseType = 'json';
 
-        this.time = new Date().toMysqlFormat();
+        let time = new Date().toMysqlFormat();
 
         let data = '';
         data = '{';
         data = data + '"toType": "' + 0 + '",';
         data = data + '"toId": "' + 0 + '",';
         data = data + '"time": "' + time + '",';
-        data = data + '"jwt": "' + jwt + '",';
+        data = data + '"jwt": "' + this.jwt + '",';
         data = data + '"body": "' + body + '",';
         data = data + '"attach": null}';
-
-        document.getElementById('chatArea__answer--msg').value = '';
         req.send(data);
         req.onreadystatechange = function () {
             if (req.readyState === 4) {
                 if (req.status == 200 && req.status < 300) {
                     /* message send ok */
+                  
                     return {"time":  time.slice(11), "name": name, "msg" : body }
                 }
             }
@@ -117,122 +94,71 @@ export default class Chat extends Phaser.Scene
 
     updateName() {
         const req = new XMLHttpRequest();
-        req.open('POST', '/api/user_update.php', true);
+        req.open('POST', 'https://chat.stacksite.ru/api/user_update.php', true);
         req.setRequestHeader('accept', 'application/json');
         req.type = 'json';
         req.responseType = 'json';
-
-        this.time = new Date().toMysqlFormat();
 
         var  data = '{"jwt": "' + this.jwt + '", "firstname": "' + newName + '"}';
         req.send(data);
         req.onreadystatechange = function () {
             if (req.readyState === 4) {
                 if (req.status == 200 && req.status < 300) {
-                    setCookie('chatName', newName, {secure: true, 'max-age': 36000});
-                    setCookie('jwt', req.response['jwt'], {secure: true, 'max-age': 36000});
+                    this.cookies.setCookie('chatName', newName, {secure: true, 'max-age': 36000});
+                    this.cookies.setCookie('jwt', req.response['jwt'], {secure: true, 'max-age': 36000});
                 }
             }
         }
     }
 
-    getMsg() {
-    
+    getMsg(time) {
         const req = new XMLHttpRequest();
-        req.open('POST', '/api/message_read.php', true);
+        req.open('POST', 'https://chat.stacksite.ru/api/message_read.php', true);
+        req.setRequestHeader('accept', 'application/json');
+        req.type = 'json';
+        req.responseType = 'json';
+        if (this.jwt) {
+            time = time.toMysqlFormat();
+            let data = JSON.stringify({"jwt": this.jwt,"time": time});
+            req.send(data);    
+        }
+        return req;
+    }
+
+
+    chatInit(name) {
+        const req = new XMLHttpRequest();
+        req.open('POST', 'https://chat.stacksite.ru/api/user_create.php', true);
         req.setRequestHeader('accept', 'application/json');
         req.type = 'json';
         req.responseType = 'json';
 
-        let data = JSON.stringify({"jwt": jwt,"time": time});
-
-        this.time = new Date().toMysqlFormat();
+        const data = JSON.stringify({"firstname":name,"email":"guest@guest","password":""});
 
         req.send(data);
-        req.onreadystatechange = function () {
+        req.onreadystatechange = () => {
             if (req.readyState === 4) {
                 if (req.status == 200 && req.status < 300) {
-                    var arrMsg = req.response['messages'];  
-                    
-                    if (Array.isArray(arrMsg) && arrMsg.length > 0) {
-                        arrMsg.forEach(function(msg) {
-                            var newBlock = document.createElement("div");
-                            newBlock.classList.add('chatArea__history--msg');
+                    this.uid = req.response['chat'].uid; 
 
-                            newBlock.innerHTML =  "<p>" + msg.time.slice(11) + "</p><p>" + msg.firstname + "</p><p>" + msg.body + "</p>";
-                            document.getElementById('chatArea__history').appendChild(newBlock);
-                            scrollBottom();
-                        });                
-                    }
+                    this.cookies.setCookie('chatID', this.uid, {secure: true, 'max-age': 36000});
+                    this.cookies.setCookie('name', req.response['chat'].name, {secure: true, 'max-age': 36000});
+                    this.cookies.setCookie('jwt', req.response['chat'].jwt, {secure: true, 'max-age': 36000});
+                    this.uid =  this.cookies.getCookie('chatID');
+                    this.name = this.cookies.getCookie('name');
+                    this.jwt = this.cookies.getCookie('jwt');
                 }
             }
         }
     }
+}
 
-    getCookie(name) {
-        let matches = document.cookie.match(new RegExp(
-            "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
-        ));
-        return matches ? decodeURIComponent(matches[1]) : undefined;
-    }
 
-    setCookie(name, value, options = {}) {
-
-        options = {
-        path: '/',
-        // при необходимости добавьте другие значения по умолчанию
-        ...options
-        };
-
-        if (options.expires instanceof Date) {
-        options.expires = options.expires.toUTCString();
-        }
-
-        let updatedCookie = encodeURIComponent(name) + "=" + encodeURIComponent(value);
-
-        for (let optionKey in options) {
-        updatedCookie += "; " + optionKey;
-        let optionValue = options[optionKey];
-        if (optionValue !== true) {
-            updatedCookie += "=" + optionValue;
-        }
-        }
-
-        document.cookie = updatedCookie;
-    }
-
-    deleteCookie(name) {
-    setCookie(name, "", {
-        'max-age': -1
-    })
-    }
-
-    chatInit() {
-        const req = new XMLHttpRequest();
-        req.open('POST', '/api/user_create.php', true);
-        req.setRequestHeader('accept', 'application/json');
-        req.type = 'json';
-        req.responseType = 'json';
-
-        const data = JSON.stringify({"firstname":"Гость","email":"guest@guest","password":""});
-
-        this.time = new Date().toMysqlFormat();
-
-        req.send(data);
-        req.onreadystatechange = function () {
-            if (req.readyState === 4) {
-                if (req.status == 200 && req.status < 300) {
-                    this.uid = req.response['chat'].uid;  
-                    setCookie('chatID', this.uid, {secure: true, 'max-age': 36000});
-                    setCookie('chatName', req.response['chat'].name, {secure: true, 'max-age': 36000});
-                    setCookie('jwt', req.response['chat'].jwt, {secure: true, 'max-age': 36000});
-                    this.uid = getCookie('chatID');
-                    this.name = getCookie('chatName');
-                    this.jwt = getCookie('jwt');
-                }
-            }
-        }
-    }
+/* format Date for SQL */
+function twoDigits(d) {
+    if(0 <= d && d < 10) return "0" + d.toString();
+    if(-10 < d && d < 0) return "-0" + (-1*d).toString();
+    return d.toString();
 }
 
 
