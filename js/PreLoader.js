@@ -156,6 +156,15 @@ export default class PreLoader extends Phaser.Scene
         this.chatCamera = this.cameras.add(50 * this.scale, 120 * this.scale, 450 * this.scale, 680 * this.scale);
         this.chatCamera.scrollX = this.game.canvas.width * 2;
 //        this.chatCamera.main.setSize(30,10);
+        this.fullScr = this.add.image(Math.floor(this.game.canvas.width - 50 * this.scale), 50 * this.scale,'btn_chat').setScale(this.scale * 0.8);
+        this.fullScr.setInteractive( { cursor: 'url(img/pointer.png), pointer' } );
+        this.fullScr.on('pointerdown', () => {
+            if (document.querySelector('canvas').requestFullscreen()) {
+                document.querySelector('canvas').requestFullscreen();
+            }
+        }, false);
+        
+        
         this.chatUI = {};
         this.chatUI.all = [];
         this.chatUI.chatBtn = this.add.image(Math.floor(this.game.canvas.width - 50 * this.scale), 150 * this.scale,'btn_chat').setScale(this.scale * 0.8);
@@ -171,8 +180,10 @@ export default class PreLoader extends Phaser.Scene
         this.chatUI.chatBtn.on('pointerdown', () => {
             if (this.chat.open) {
                 this.chatUI.all.forEach( el => { el.setVisible(false); })
+                this.startBtn.setInteractive();
             }else{
                 this.chatUI.all.forEach( el => { el.setVisible(true); })    
+                this.startBtn.disableInteractive();
             }
             this.chat.open = !this.chat.open;
         })
@@ -181,7 +192,7 @@ export default class PreLoader extends Phaser.Scene
         this.chatUI.sendBtn.on('pointerdown', () => {
             this.htmlInput2.style.display = "none";
             this.chatUI.input.text = this.htmlInput2.value;
-            // send msg THEN clear TODO
+            // send msg THEN clear TODO 
             this.showHistory(this.htmlInput2.value);
             let msg = this.htmlInput2.value;
             this.htmlInput2.value = '';

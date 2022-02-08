@@ -2,6 +2,7 @@
 import PreLoader from './PreLoader.js';
 import GameScene from './GameScene.js';
 import MainScene from './MainScene.js';
+import  './fullScreenPolyfill.js';
 
 document.addEventListener("DOMContentLoaded", function(e) {
     init();
@@ -38,4 +39,9 @@ function init() {
     game.config.gameTitle ="3 row";
     game.config.widthOrigin = widthOrigin;
     game.config.gameURL ="https:/stacksite.ru/assets/project2/three/";
+
+//    document.querySelector('canvas').addEventListener("click", function() {
+        // Use the final API, the polyfill will call the mozRequestFullScreen or webKitRequestFullScreen for you
+//        document.querySelector('canvas').requestFullscreen();
+//    }, false);
 }
