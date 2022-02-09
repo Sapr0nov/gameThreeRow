@@ -155,12 +155,14 @@ export default class PreLoader extends Phaser.Scene
 
         this.chatCamera = this.cameras.add(50 * this.scale, 120 * this.scale, 450 * this.scale, 680 * this.scale);
         this.chatCamera.scrollX = this.game.canvas.width * 2;
-//        this.chatCamera.main.setSize(30,10);
+
         this.fullScr = this.add.image(Math.floor(this.game.canvas.width - 50 * this.scale), 50 * this.scale,'btn_chat').setScale(this.scale * 0.8);
         this.fullScr.setInteractive( { cursor: 'url(img/pointer.png), pointer' } );
         this.fullScr.on('pointerdown', () => {
-            if (document.querySelector('canvas').requestFullscreen()) {
-                document.querySelector('canvas').requestFullscreen();
+            if (document.fullscreenEnabled && !document.fullscreenElement ) {
+                document.querySelector('canvas').requestFullscreen();                             
+            }else{
+                document.exitFullscreen();
             }
         }, false);
         
