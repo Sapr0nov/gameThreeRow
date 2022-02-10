@@ -160,9 +160,11 @@ export default class PreLoader extends Phaser.Scene
         this.fullScr.setInteractive( { cursor: 'url(img/pointer.png), pointer' } );
         this.fullScr.on('pointerdown', () => {
             if (document.fullscreenEnabled && !document.fullscreenElement ) {
-                document.querySelector('canvas').requestFullscreen();                             
+                document.body.requestFullscreen();
+                // todo reinit?                          
             }else{
                 document.exitFullscreen();
+                // todo reinit?  
             }
         }, false);
         
