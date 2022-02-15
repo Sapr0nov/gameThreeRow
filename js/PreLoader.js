@@ -21,6 +21,7 @@ export default class PreLoader extends Phaser.Scene
         this.load.image('chat_board', './img/chat_board.png');
         this.load.image('chat_panel', './img/chat_panel.png');
         this.player = {};
+        this.gameVersion = "0.000.003";
     }
 
     create () {
@@ -60,7 +61,7 @@ export default class PreLoader extends Phaser.Scene
             this.bg.isHide = true;
 
             this.scene.transition({
-                target: 'gameScene',
+                target: 'mainScene',
                 duration: 1300,
                 init: true,
             })
@@ -77,7 +78,7 @@ export default class PreLoader extends Phaser.Scene
         this.startBtn.setScale(0.4,0.4);
         this.startBtn.setRotation(-0.1);
 
-        this.add.text(2, 2, 'version: 0.000.002', { fontFamily: 'Tahoma, Times, serif', color: "#000000", fontSize : '10px' }).setScale(this.scale);
+        this.add.text(2, 2, 'version: ' + this.gameVersion, { fontFamily: 'Tahoma, Times, serif', color: "#000000", fontSize : '10px' }).setScale(this.scale);
 
         this.nameBoard = this.add.image(80 * this.scale, 140 * this.scale, 'nameBoard').setScale(this.scale);
         this.nameBoard.setInteractive( { cursor: 'url(img/pointer.png), pointer' } );
@@ -161,10 +162,8 @@ export default class PreLoader extends Phaser.Scene
         this.fullScr.on('pointerdown', () => {
             if (document.fullscreenEnabled && !document.fullscreenElement ) {
                 document.body.requestFullscreen();
-                // todo reinit?                          
             }else{
                 document.exitFullscreen();
-                // todo reinit?  
             }
         }, false);
         
@@ -243,6 +242,11 @@ export default class PreLoader extends Phaser.Scene
             this.earL.setAlpha(this.bg.alpha + this.bg.dalpha * this.deltaTime);
             this.bg.setAlpha(this.bg.alpha + this.bg.dalpha * this.deltaTime);
             this.earR.setScale(this.scale + 0.01, this.scale + 0.01);
+            this.chatUI.all.forEach( el => { el.setAlpha(this.bg.alpha + this.bg.dalpha * this.deltaTime); })
+            this.chatUI.chatBtn.setAlpha(this.bg.alpha + this.bg.dalpha * this.deltaTime);
+            this.nameBoard.setAlpha(this.bg.alpha + this.bg.dalpha * this.deltaTime);
+            this.fullScr.setAlpha(this.bg.alpha + this.bg.dalpha * this.deltaTime);
+            this.inputName.setAlpha(this.bg.alpha + this.bg.dalpha * this.deltaTime);
         }
     }
     

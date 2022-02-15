@@ -4,6 +4,17 @@ export default class GameScene extends Phaser.Scene
         super({key: 'gameScene'});
     }
 
+    init(data) {
+        this.MaxRow = (data.MaxRow !== void 0) ? data.MaxRow : 5; 
+        this.MaxCol = (data.MaxCol !== void 0) ? data.MaxCol : 7; 
+        this.typesBlock = (data.typesBlock !== void 0) ? data.typesBlock : 5; // number different blocks without bombs 
+        this.speed = (data.speed !== void 0) ? data.speed : 10; 
+        this.victoryScore = (data.victoryScore !== void 0) ? data.victoryScore : 100; 
+        this.MaxLife = (data.MaxLife !== void 0) ? data.MaxLife : 20; 
+        this.MaxLife = (data.MaxLife !== void 0) ? data.MaxLife : 20; 
+        this.winColor = (data.winColor !== void 0) ? data.winColor : 2;         // 2 - water
+        this.isVicory = (data.isVictory !== void 0) ? data.isVicory : () => { return  (this.barsProgress[this.winColor].value  >= this.victoryScore) }
+    }
 
     preload () {
         let width = this.game.canvas.width;
@@ -21,14 +32,7 @@ export default class GameScene extends Phaser.Scene
         this.load.svg('desk-life', './img/desk_life.svg',  {width:300, height:138});
         this.load.svg('desk-score', './img/desk_score.svg',  {width:300, height:138});
         
-        this.MaxRow = 5;
-        this.MaxCol = 7;
         this.baseSize = 64;
-
-        this.typesBlock = 5; // number different blocks without bombs
-        this.speed = 10;
-        this.victoryScore = 1200;
-        this.MaxLife = 20;
 
         this.step = width / this.MaxCol;
         this.scale = width / this.game.config.widthOrigin;
@@ -575,11 +579,11 @@ export default class GameScene extends Phaser.Scene
     checkWin() {
         let showCup;
 
-        if (this.gameScore < this.victoryScore && this.lifes.num > 0) {
+        if (!this.isVicory() && this.lifes.num > 0) {
             return false;
         }
 
-        if (this.gameScore >= this.victoryScore) {
+        if (this.isVicory()) {
             showCup = this.prize;
         }
 

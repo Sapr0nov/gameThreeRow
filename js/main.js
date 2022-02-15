@@ -31,7 +31,7 @@ function init() {
         width: widthCanvas,
         height: heightCanvas,
         disableContextMenu: true,
-        scene: [ PreLoader, GameScene ],
+        scene: [ PreLoader, GameScene, MainScene ],
         banner: false
     };
     
