@@ -24,6 +24,7 @@ export default class GameScene extends Phaser.Scene
         this.load.atlas('blocks', './img/blocks.png', './img/blocks.json');
         this.load.atlas('energy', './img/energy.png', './img/energy.json');
 
+        this.load.image('blockSelect','./img/blockSelect.png');
         this.load.image('board','./img/board.png');
         this.load.image('background', './img/background.jpg');
         this.load.image('bar','./img/bar_empty.png');
@@ -101,6 +102,8 @@ export default class GameScene extends Phaser.Scene
 
         this.lifes.setText(this.lifes.num);
         this.board = this.add.image(0, Math.floor(this.ofsetY - 0.75 * this.baseSize * this.scale), 'board').setScale(this.scale * 0.96);
+        this.board.blockSelect = this.add.image(0, 0, 'blockSelect').setScale(this.scale);
+        this.board.blockSelect.setVisible(false);
         this.board.setOrigin(0);
         this.board.setAlpha(0.5);
         this.board.blocks = [];
@@ -400,7 +403,9 @@ export default class GameScene extends Phaser.Scene
 
         // checked neighborhood
         if ( Math.abs(this.firstSelBlock.row - element.row) + Math.abs(this.firstSelBlock.col - element.col) === 1 ) {
+            this.board.blockSelect.setVisible(false);
             this.makeSwap(this.firstSelBlock, element);
+            this.firstSelBlock = null;
         }
     }
 
@@ -492,10 +497,18 @@ export default class GameScene extends Phaser.Scene
         
         block.on('pointerdown', () => {
             if (this.isBlocked) return;
-            if (this.firstSelBlock != null) { this.firstSelBlock.setRotation(0) }
-            this.firstSelBlock = block;
+
+            if (this.firstSelBlock && ( (Math.abs(this.firstSelBlock.col - block.col) + Math.abs(this.firstSelBlock.row - block.row)) === 1 ) ) {
+                this.clicked(block);
+            } else {
+                this.firstSelBlock = block;
+                [this.board.blockSelect.x, this.board.blockSelect.y] = [this.firstSelBlock.x, this.firstSelBlock.y];
+                this.board.blockSelect.setVisible(true);    
+            }
         })
+
         this.board.blocks.push(block);
+        
         // if realized under board
         this.board.setInteractive();
 
@@ -526,7 +539,9 @@ export default class GameScene extends Phaser.Scene
                 this.clicked(block);
                 return;
             }
-
+            if (this.firstSelBlock === block) {
+                return;
+            }
             // checked direction of swipe
             if ( (this.firstSelBlock.row !== block.row) && (this.firstSelBlock.col !== block.col) ) {
                 return;
@@ -541,11 +556,12 @@ export default class GameScene extends Phaser.Scene
             if (this.firstSelBlock.col === block.col) {
                 nextRow += ( this.firstSelBlock.row < block.row ) ? 1 : -1;
             }
-            
-            this.clicked(this.matrix[nextRow][nextCol].block);
-  
-            if (this.firstSelBlock !== null) { this.firstSelBlock.setRotation(0); }
-            this.firstSelBlock = null;
+
+            if (this.matrix[nextRow]) {
+                this.clicked(this.matrix[nextRow][nextCol].block);
+                this.board.blockSelect.setVisible(false);
+                this.firstSelBlock = null;
+            }
         })
 
         block.on('pointerover', () => {
