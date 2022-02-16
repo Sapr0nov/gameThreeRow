@@ -45,7 +45,6 @@ export default class GameScene extends Phaser.Scene
         this.prevtime = new Date().getTime(); 
         this.deltaTime = 0;
         this.isBlocked = true;
-        
         this.matrix = new Array(this.MaxRow);
         for (let i = 0; i < this.MaxRow; i ++){
             this.matrix[i] = new Array(this.MaxCol).fill();
@@ -54,6 +53,7 @@ export default class GameScene extends Phaser.Scene
         this.events.on('transitioncomplete', () => { 
             this.scene.setVisible(true);
             this.normalize();
+            this.isBlocked = false;
             this.gameScore = 0;
             this.bars.forEach((bars, i) => this.resetProgress(i) );
         });
@@ -69,7 +69,6 @@ export default class GameScene extends Phaser.Scene
         this.curAnim = '';
         this.gameScore = 0;
         this.collapseBlocks = new Set();
-        this.isBlocked = true;
 
         this.input.keyboard.on('keydown', (e) => {
             if (e.key === 't') {
@@ -104,6 +103,8 @@ export default class GameScene extends Phaser.Scene
         this.board = this.add.image(0, Math.floor(this.ofsetY - 0.75 * this.baseSize * this.scale), 'board').setScale(this.scale * 0.96);
         this.board.setOrigin(0);
         this.board.setAlpha(0.5);
+        this.board.blocks = [];
+
         this.prize = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 3) ,'prize').setScale(this.scale);
         this.prize.setVisible(false);
         this.noprize = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 3) ,'noprize').setScale(this.scale);
@@ -143,18 +144,25 @@ export default class GameScene extends Phaser.Scene
 
         this.deltaTime = new Date().getTime() - this.prevtime;
         this.prevtime += this.deltaTime;
-        
         this.checkStartEvent('swap', this.swapAnimation.bind(this), this.swapBlocks);
         this.checkStartEvent('drop', this.dropAnimation.bind(this), this.dropBlocks);
         this.checkEndEvent('swap', this.onSwapFinished.bind(this), this.swapBlocks);
         this.checkEndEvent('drop', this.onDropFinished.bind(this), this.dropBlocks);
+
+        if (this.isBlocked) {
+            this.board.blocks.forEach (block => { block.tint = 0xcccccc; });
+        }else{
+            this.board.blocks.forEach (block => { block.tint = 0xffffff; });
+        }
     }
 
 
     checkStartEvent (name, callback, arr) {
         if ((this.curAnim === '' || this.curAnim === name) && arr.length > 0) {
+            if (this.curAnim === '') {
+                this.isBlocked = true;
+            }
             this.curAnim = name;
-            this.isBlocked = true;
             callback(arr);
         }
     }
@@ -164,7 +172,6 @@ export default class GameScene extends Phaser.Scene
         if (this.curAnim === name && arr.length === 0) {
             callback();
             this.curAnim = '';
-            this.isBlocked = false;
         }
     }
 
@@ -485,18 +492,15 @@ export default class GameScene extends Phaser.Scene
         
         block.on('pointerdown', () => {
             if (this.isBlocked) return;
-            console.log('blog')            
             if (this.firstSelBlock != null) { this.firstSelBlock.setRotation(0) }
             this.firstSelBlock = block;
-//            this.firstSelBlock.setRotation(Math.PI / 12 * 1)
         })
-       
+        this.board.blocks.push(block);
         // if realized under board
         this.board.setInteractive();
+
         this.board.on('pointerup', (e) => {
-
             if (this.isBlocked || !this.firstSelBlock) return;
-
             // checked click on bomb
             if (this.matrix[block.row][block.col].key >= this.typesBlock) {
                 this.clicked(block);
@@ -511,14 +515,12 @@ export default class GameScene extends Phaser.Scene
                 newRow += (e.upY > e.downY) ? 1 : -1;
             }
             this.clicked(this.matrix[newRow][newCol].block);
-  
-//            if (this.firstSelBlock !== null) { this.firstSelBlock.setRotation(0); }
             this.firstSelBlock = null;
         })
+
         // if realized under block
         block.on('pointerup', () => {
             if (this.isBlocked || !this.firstSelBlock) return;
-            
             // checked click on bomb
             if (this.matrix[block.row][block.col].key >= this.typesBlock) {
                 this.clicked(block);
@@ -614,7 +616,9 @@ export default class GameScene extends Phaser.Scene
         }
 
         if (this.isVicory()) {
-            this.cookie.setCookie('currScene', ++this.currScene,  {secure: true, 'max-age': 360000});
+            this.currScene++;
+            if (this.currScene > 3 ) { this.currScene = 0 }
+            this.cookie.setCookie('currScene', this.currScene,  {secure: true, 'max-age': 360000});
             showCup = this.prize;
         }
 
@@ -652,7 +656,6 @@ export default class GameScene extends Phaser.Scene
 
 
     dropAnimation(blocks) {
-
         blocks.forEach( (block, index) => {
             if (block.newY > block.y) {
                 block.y += block.dy * this.deltaTime / this.speed;
@@ -665,7 +668,6 @@ export default class GameScene extends Phaser.Scene
 
 
     swapAnimation(blocks) {
-
         blocks.forEach( (block, index) => {
             /* normalize coords */
             let signX = (block.dx) ? block.dx / Math.abs(block.dx) : 1;
@@ -704,7 +706,12 @@ export default class GameScene extends Phaser.Scene
 
 
     onSwapFinished () {
-        this.collapse(this.checkMatches(this.matrix));
+        const mathes = this.checkMatches(this.matrix);
+        if (mathes.length === 0) {
+            this.isBlocked = false;
+        }else{
+            this.collapse(mathes);
+        }
     }
 
 
@@ -712,8 +719,13 @@ export default class GameScene extends Phaser.Scene
         if (this.checkWin()) {
              return;
         }
-        if (this.checkMatches(this.matrix)) {
-            this.collapse(this.checkMatches(this.matrix));
+
+        const mathes = this.checkMatches(this.matrix);
+
+        if (mathes.length === 0) {
+            this.isBlocked = false;
+        }else{
+            this.collapse(mathes);
         }
     }
 
@@ -729,13 +741,12 @@ export default class GameScene extends Phaser.Scene
                 this.matrix[curRow][curCol].block.play(this.animsBlock[this.matrix[curRow][curCol].key]);
             }
         }
-        this.isBlocked = true;
- 
-
     }
 
 
     test () {
+        this.isBlocked = false;
+
         let res = [], res2 = [];
         let res3 = [], res4 = [];
         for (let curRow = 0; curRow < this.MaxRow; curRow ++) {
