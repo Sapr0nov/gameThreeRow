@@ -3,6 +3,9 @@ export default class MainScene extends Phaser.Scene
     constructor () {
         super({key: 'mainScene'});
     }
+    init (data) {
+        this.dialogs = (data.dialogs !== void 0) ? data.dialogs : ['Привет! Откуда ты?', 'Здравствуйте, \r\n\ я путешественник! \r\n\ из Пандаленда', 'Ты во время,\r\n\ помоги нам собрать\r\n\ воды!', 'Конечно! Вперед!']; 
+    }
 
     preload () {
         this.scale = Math.floor ((1000 * this.game.canvas.width) / this.game.config.widthOrigin) / 1000;
@@ -13,7 +16,6 @@ export default class MainScene extends Phaser.Scene
         this.load.svg('dialog', './img/dialog.svg',  {width: this.game.scale.baseSize.width, height: this.game.scale.baseSize.height / 2});
         
         this.currDialog = 0;
-        this.dialogs = ['Привет! Откуда ты?', 'Здравствуйте, \r\n\ я путешественник! \r\n\ из Пандаленда', 'Ты во время,\r\n\ помоги нам собрать\r\n\ воды!', 'Конечно! Вперед!'];
     }
 
     create () {
@@ -48,12 +50,11 @@ export default class MainScene extends Phaser.Scene
                         "MaxRow" : 5,
                         "MaxCol" : 7,
                         "typesBlock" : 5,
-                        "speed" : 8,
+                        "speed" : 6,
                         "victoryScore" : 100,
                         "MaxLife" : 16,
-                        "winColor" : 2,         // 2 - water
+                        "winColor" : 1,         //0 air, 1 fire, 2 - water
                         "isVicory" : () => { return  (this.barsProgress[this.winColor].value  >= this.victoryScore) }
-                
                     }
                 })
             }else{

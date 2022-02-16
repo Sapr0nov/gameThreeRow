@@ -1,3 +1,4 @@
+import Cookies from './Cookies.js';
 export default class GameScene extends Phaser.Scene
 {
     constructor () {
@@ -68,6 +69,7 @@ export default class GameScene extends Phaser.Scene
         this.curAnim = '';
         this.gameScore = 0;
         this.collapseBlocks = new Set();
+        this.isBlocked = true;
 
         this.input.keyboard.on('keydown', (e) => {
             if (e.key === 't') {
@@ -77,6 +79,9 @@ export default class GameScene extends Phaser.Scene
                 this.normalize();
             }
         });
+
+        this.cookie = new Cookies();
+        this.currScene = this.cookie.getCookie("currScene")? this.cookie.getCookie("currScene")  : 0;
 
         this.keys = ['block_air','block_arthropoda','block_demon','block_earth','block_fire','block_flash','block_forest','block_ice','block_lindworm','block_water','bomb','tnt'];
 
@@ -139,15 +144,10 @@ export default class GameScene extends Phaser.Scene
         this.deltaTime = new Date().getTime() - this.prevtime;
         this.prevtime += this.deltaTime;
         
-        if (this.curAnim === '') {
-            this.isBlocked = false;        
-        }
-
         this.checkStartEvent('swap', this.swapAnimation.bind(this), this.swapBlocks);
         this.checkStartEvent('drop', this.dropAnimation.bind(this), this.dropBlocks);
         this.checkEndEvent('swap', this.onSwapFinished.bind(this), this.swapBlocks);
         this.checkEndEvent('drop', this.onDropFinished.bind(this), this.dropBlocks);
-
     }
 
 
@@ -164,11 +164,12 @@ export default class GameScene extends Phaser.Scene
         if (this.curAnim === name && arr.length === 0) {
             callback();
             this.curAnim = '';
+            this.isBlocked = false;
         }
     }
 
     /**
-     * return Array of  oblects.
+     * return Array of  objects.
      *
      * @param {Array[][]} matrix tested matrix.
      * @return {Array[]} array of {blocks : Sprite, key : Int} (blocks for delete).
@@ -254,6 +255,10 @@ export default class GameScene extends Phaser.Scene
     
     
     compareLine (arr1, arr2) {
+        if (!Array.isArray(arr1) || !Array.isArray(arr2)) {
+            return; 
+        }
+
         let result = -1;
         arr1.forEach((el1, index) => {
             if (result > 0) {
@@ -317,7 +322,7 @@ export default class GameScene extends Phaser.Scene
             [-1, 0 , 1].forEach ( dy => {
                 
                 // if damage block on field
-                if (this.matrix[block.row + dx][block.col + dy] === void 0) {
+                if (this.matrix[block.row + dx] === void 0 || this.matrix[block.row + dx][block.col + dy] === void 0) {
                     return;
                 }
                 
@@ -480,12 +485,37 @@ export default class GameScene extends Phaser.Scene
         
         block.on('pointerdown', () => {
             if (this.isBlocked) return;
-            
+            console.log('blog')            
             if (this.firstSelBlock != null) { this.firstSelBlock.setRotation(0) }
             this.firstSelBlock = block;
-            this.firstSelBlock.setRotation(Math.PI / 4)
+//            this.firstSelBlock.setRotation(Math.PI / 12 * 1)
         })
-        
+       
+        // if realized under board
+        this.board.setInteractive();
+        this.board.on('pointerup', (e) => {
+
+            if (this.isBlocked || !this.firstSelBlock) return;
+
+            // checked click on bomb
+            if (this.matrix[block.row][block.col].key >= this.typesBlock) {
+                this.clicked(block);
+                return;
+            }
+
+            let newCol = this.firstSelBlock.col;
+            let newRow = this.firstSelBlock.row;
+            if (Math.abs(e.upX - e.downX) > Math.abs(e.upY - e.downY)) {
+                newCol += (e.upX > e.downX) ? 1 : -1;
+            }else{
+                newRow += (e.upY > e.downY) ? 1 : -1;
+            }
+            this.clicked(this.matrix[newRow][newCol].block);
+  
+//            if (this.firstSelBlock !== null) { this.firstSelBlock.setRotation(0); }
+            this.firstSelBlock = null;
+        })
+        // if realized under block
         block.on('pointerup', () => {
             if (this.isBlocked || !this.firstSelBlock) return;
             
@@ -537,7 +567,7 @@ export default class GameScene extends Phaser.Scene
 
         if (newValue > 100) {
             newValue = 100;
-            console.log('onFull(number)', number);
+
             this.barsPreview[number].setScale(this.scale / 3);
             this.barsPreview[number].setInteractive( { cursor: 'url(img/pointer.png), pointer' } );
             this.barsPreview[number].on('pointerdown', () => {
@@ -584,6 +614,7 @@ export default class GameScene extends Phaser.Scene
         }
 
         if (this.isVicory()) {
+            this.cookie.setCookie('currScene', ++this.currScene,  {secure: true, 'max-age': 360000});
             showCup = this.prize;
         }
 
@@ -697,7 +728,9 @@ export default class GameScene extends Phaser.Scene
                 this.matrix[curRow][curCol].block.y = this.ofsetY + this.step * curRow;
                 this.matrix[curRow][curCol].block.play(this.animsBlock[this.matrix[curRow][curCol].key]);
             }
-        } 
+        }
+        this.isBlocked = true;
+ 
 
     }
 

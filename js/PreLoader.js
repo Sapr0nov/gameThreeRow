@@ -18,10 +18,14 @@ export default class PreLoader extends Phaser.Scene
 
         this.load.image('btn_chat', './img/btn_chat.png');
         this.load.image('btn_send', './img/btn_send.png');
-        this.load.image('chat_board', './img/chat_board.png');
+        this.load.image('btn_fullScr', './img/btn_fullScr.png');
+            this.load.image('chat_board', './img/chat_board.png');
         this.load.image('chat_panel', './img/chat_panel.png');
+        
         this.player = {};
         this.gameVersion = "0.000.003";
+        this.dialogs = [['Привет! Откуда ты?', 'Здравствуйте, \r\n\ я путешественник! \r\n\ из Пандаленда', 'Ты во время,\r\n\ помоги нам собрать\r\n\ воды!', 'Конечно! Вперед!'],['Спасибо тебе Панда, \r\n Давай теперь соберем \r\n немного огонька?', 'Конечно, \r\n вперед за теплом!']]; 
+        this.currScene = 0;
     }
 
     create () {
@@ -64,6 +68,9 @@ export default class PreLoader extends Phaser.Scene
                 target: 'mainScene',
                 duration: 1300,
                 init: true,
+                data: {
+                    "dialogs" : this.dialogs[this.currScene]
+                }
             })
         })
 
@@ -85,6 +92,7 @@ export default class PreLoader extends Phaser.Scene
 
         const cookie = new Cookies();
         this.player.name = cookie.getCookie("player");
+        this.currScene = cookie.getCookie("currScene")? cookie.getCookie("currScene")  : 0;
 
         if (this.player.name === void 0) { this.player.name = "герой" }
         
@@ -157,7 +165,7 @@ export default class PreLoader extends Phaser.Scene
         this.chatCamera = this.cameras.add(50 * this.scale, 120 * this.scale, 450 * this.scale, 680 * this.scale);
         this.chatCamera.scrollX = this.game.canvas.width * 2;
 
-        this.fullScr = this.add.image(Math.floor(this.game.canvas.width - 50 * this.scale), 50 * this.scale,'btn_chat').setScale(this.scale * 0.8);
+        this.fullScr = this.add.image(Math.floor(this.game.canvas.width - 50 * this.scale), 50 * this.scale,'btn_fullScr').setScale(this.scale * 0.8);
         this.fullScr.setInteractive( { cursor: 'url(img/pointer.png), pointer' } );
         this.fullScr.on('pointerdown', () => {
             if (document.fullscreenEnabled && !document.fullscreenElement ) {
