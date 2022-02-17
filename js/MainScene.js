@@ -1,11 +1,40 @@
+import Cookies from './Cookies.js';
 export default class MainScene extends Phaser.Scene
 {
     constructor () {
         super({key: 'mainScene'});
     }
+
+    
     init (data) {
+        this.cookie = new Cookies();
+        this.currScene = this.cookie.getCookie("currScene")? this.cookie.getCookie("currScene")  : 0;
+
+        this.stages = [];
+        
         this.dialogs = (data.dialogs !== void 0) ? data.dialogs : ['Привет! Откуда ты?', 'Здравствуйте, \r\n\ я путешественник! \r\n\ из Пандаленда', 'Ты во время,\r\n\ помоги нам собрать\r\n\ воды!', 'Конечно! Вперед!']; 
-    }
+        this.stages.push(
+        {
+            "MaxRow" : 5,
+            "MaxCol" : 7,
+            "typesBlock" : 4,
+            "speed" : 6,
+            "victoryScore" : 100,
+            "MaxLife" : 16,
+            "winColor" : 2,         //0 air, 1 fire, 2 - water
+            "isVicory" : () => { return  (this.barsProgress[this.winColor].value  >= this.victoryScore) },
+            "keys" : ["block_air", "block_fire", "block_water", "block_forest", "bomb", "tnt"]
+        });
+        this.stages.push({"MaxRow" : 5, "MaxCol" : 7,  "typesBlock" : 5, "speed" : 6,  "victoryScore" : 100, "MaxLife" : 16, "winColor" : 1,
+            "isVicory" : () => { return  (this.barsProgress[this.winColor].value  >= this.victoryScore) },
+            "keys" : ["block_air", "block_fire", "block_water", "block_forest", "block_demon", "bomb", "tnt"]
+        });
+        this.stages.push({"MaxRow" : 5, "MaxCol" : 7,  "typesBlock" : 5, "speed" : 6,  "victoryScore" : 100, "MaxLife" : 12, "winColor" : 3,
+            "isVicory" : () => { return  (this.barsProgress[this.winColor].value  >= this.victoryScore) },
+            "keys" : ["block_air", "block_fire", "block_water", "block_forest", "block_demon", "bomb", "tnt"]
+        });
+}
+
 
     preload () {
         this.scale = Math.floor ((1000 * this.game.canvas.width) / this.game.config.widthOrigin) / 1000;
@@ -17,6 +46,7 @@ export default class MainScene extends Phaser.Scene
         
         this.currDialog = 0;
     }
+
 
     create () {
         this.prevtime = new Date().getTime(); 
@@ -46,16 +76,7 @@ export default class MainScene extends Phaser.Scene
                     target: 'gameScene',
                     duration: 1300,
                     launch: true,
-                    data: {
-                        "MaxRow" : 5,
-                        "MaxCol" : 7,
-                        "typesBlock" : 5,
-                        "speed" : 6,
-                        "victoryScore" : 100,
-                        "MaxLife" : 16,
-                        "winColor" : 1,         //0 air, 1 fire, 2 - water
-                        "isVicory" : () => { return  (this.barsProgress[this.winColor].value  >= this.victoryScore) }
-                    }
+                    data: this.stages[ this.currScene]
                 })
             }else{
                 this.dialog.setScale(this.dialog.scaleX, -this.dialog.scaleY);
@@ -71,6 +92,7 @@ export default class MainScene extends Phaser.Scene
 
     }
 
+
     update() {
 
         this.deltaTime = new Date().getTime() - this.prevtime;
@@ -78,6 +100,7 @@ export default class MainScene extends Phaser.Scene
 
         this.bgAnimation();
     }
+
 
     bgAnimation() {
         if (this.bg.isHide && this.bg.alpha > 0) {

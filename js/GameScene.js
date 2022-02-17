@@ -10,11 +10,12 @@ export default class GameScene extends Phaser.Scene
         this.MaxCol = (data.MaxCol !== void 0) ? data.MaxCol : 7; 
         this.typesBlock = (data.typesBlock !== void 0) ? data.typesBlock : 5; // number different blocks without bombs 
         this.speed = (data.speed !== void 0) ? data.speed : 10; 
-        this.victoryScore = (data.victoryScore !== void 0) ? data.victoryScore : 100; 
+        this.victoryScore = (data.victoryScore !== void 0) ? data.victoryScore : 99; 
         this.MaxLife = (data.MaxLife !== void 0) ? data.MaxLife : 20; 
         this.MaxLife = (data.MaxLife !== void 0) ? data.MaxLife : 20; 
-        this.winColor = (data.winColor !== void 0) ? data.winColor : 2;         // 2 - water
+        this.winColor = (data.winColor !== void 0) ? data.winColor : 0;         // 0 air 1 fire 2 water
         this.isVicory = (data.isVictory !== void 0) ? data.isVicory : () => { return  (this.barsProgress[this.winColor].value  >= this.victoryScore) }
+        this.keys = (data.keys !== void 0) ? data.keys : ['block_air','block_arthropoda','block_demon','block_earth','block_fire','block_flash','block_forest','block_ice','block_lindworm','block_water','bomb','tnt'];
     }
 
     preload () {
@@ -83,14 +84,12 @@ export default class GameScene extends Phaser.Scene
         this.cookie = new Cookies();
         this.currScene = this.cookie.getCookie("currScene")? this.cookie.getCookie("currScene")  : 0;
 
-        this.keys = ['block_air','block_arthropoda','block_demon','block_earth','block_fire','block_flash','block_forest','block_ice','block_lindworm','block_water','bomb','tnt'];
-
+        this.animsBlock = [];
         this.energy = this.anims.create({ key: 'energy', delay :0, hideOnComplete: true, frames: this.anims.generateFrameNames('energy', { prefix: 'energy_', end: 15, zeroPad: 4 }), repeat: 0 });
         this.keys.forEach( name => {
             this[name] = this.anims.create({ key: name, frames: this.anims.generateFrameNames('blocks', { prefix: name + '_', end: 0, zeroPad: 4 }), repeat: -1 });
+            this.animsBlock.push(this[name]);
         })
-        // Handle form color for stage
-        this.animsBlock = [this.block_air, this.block_fire, this.block_water, this.block_forest, this.block_demon, this.bomb, this.tnt];
 
         this.bg = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 2) ,'background').setScale(this.scale);
         this.deskLife = this.add.image(140 * this.scale, 70 * this.scale, 'desk-life').setScale(this.scale);
@@ -139,6 +138,13 @@ export default class GameScene extends Phaser.Scene
             this.spawn();
             this.collapseBlocks = new Set(...this.checkMatches(this.matrix));
         }
+        this.barsProgress.forEach( bar => { bar.setVisible(false) })
+        this.bars.forEach( bar => { bar.setVisible(false) })
+        this.barsPreview.forEach( bar => { bar.setVisible(false) })
+        
+        this.barsProgress[this.winColor].setVisible(true);
+        this.bars[this.winColor].setVisible(true);
+        this.barsPreview[this.winColor].setVisible(true);
         this.normalize();
     }
 
@@ -762,7 +768,7 @@ export default class GameScene extends Phaser.Scene
 
     test () {
         this.isBlocked = false;
-
+        this.barsProgress[this.winColor].value = 100;
         let res = [], res2 = [];
         let res3 = [], res4 = [];
         for (let curRow = 0; curRow < this.MaxRow; curRow ++) {
