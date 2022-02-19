@@ -1,9 +1,5 @@
-export default class Cookies extends Phaser.Scene
+export default class Cookies
 {
-    constructor () {
-        super();
-    }
-
     getCookie(name) {
         let matches = document.cookie.match(new RegExp(
           "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"

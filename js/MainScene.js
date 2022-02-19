@@ -1,4 +1,5 @@
 import Cookies from './Cookies.js';
+import INIfile from './INIfile.js';
 export default class MainScene extends Phaser.Scene
 {
     constructor () {
@@ -6,34 +7,25 @@ export default class MainScene extends Phaser.Scene
     }
 
     
-    init (data) {
+    async init (data) {
         this.cookie = new Cookies();
         this.currScene = this.cookie.getCookie("currScene")? this.cookie.getCookie("currScene")  : 0;
+        this.ini = new INIfile();
 
         this.stages = [];
-        
-        this.dialogs = (data.dialogs !== void 0) ? data.dialogs : ['Привет! Откуда ты?', 'Здравствуйте, \r\n\ я путешественник! \r\n\ из Пандаленда', 'Ты во время,\r\n\ помоги нам собрать\r\n\ воды!', 'Конечно! Вперед!']; 
-        this.stages.push(
-        {
-            "MaxRow" : 5,
-            "MaxCol" : 7,
-            "typesBlock" : 4,
-            "speed" : 6,
-            "victoryScore" : 100,
-            "MaxLife" : 16,
-            "winColor" : 2,         //0 air, 1 fire, 2 - water
-            "isVicory" : () => { return  (this.barsProgress[this.winColor].value  >= this.victoryScore) },
-            "keys" : ["block_air", "block_fire", "block_water", "block_forest", "bomb", "tnt"]
-        });
-        this.stages.push({"MaxRow" : 5, "MaxCol" : 7,  "typesBlock" : 5, "speed" : 6,  "victoryScore" : 100, "MaxLife" : 16, "winColor" : 1,
-            "isVicory" : () => { return  (this.barsProgress[this.winColor].value  >= this.victoryScore) },
-            "keys" : ["block_air", "block_fire", "block_water", "block_forest", "block_demon", "bomb", "tnt"]
-        });
-        this.stages.push({"MaxRow" : 5, "MaxCol" : 7,  "typesBlock" : 5, "speed" : 6,  "victoryScore" : 100, "MaxLife" : 12, "winColor" : 3,
-            "isVicory" : () => { return  (this.barsProgress[this.winColor].value  >= this.victoryScore) },
-            "keys" : ["block_air", "block_fire", "block_water", "block_forest", "block_demon", "bomb", "tnt"]
-        });
-}
+
+        let pathINIfile ="../stages/" +  this.currScene + ".ini"
+
+        let response = await fetch(pathINIfile);
+        if (response.ok) {
+            let data = await response.text();
+            this.ini.data = this.ini.parseINIString(data) 
+            this.stages.push(this.ini.data.stage);
+            this.dialogs = (this.ini.data.dialogs !== void 0) ? JSON.parse('{ "dialog" : ' + this.ini.data.dialogs.dialog + '}').dialog : ['Как насчет \n случайного раунда?', 'Поехали!'];
+        } else {
+            console.warn(response)
+        }
+    }
 
 
     preload () {
