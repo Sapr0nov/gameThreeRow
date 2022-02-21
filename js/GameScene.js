@@ -41,9 +41,9 @@ export default class GameScene extends Phaser.Scene
         this.load.image('blockSelect','./img/blockSelect.png');
         this.load.image('board','./img/board.png');
         this.load.image('popup','./img/popup.png');
-        this.load.image('btnReply','./img/btn_fullScr.png');
-        this.load.image('btnMenu','./img/btn_chat.png');
-        this.load.image('btnNext','./img/btn_send.png');
+        this.load.image('btnReply','./img/btn_replay.png');
+        this.load.image('btnMenu','./img/btn_menu.png');
+        this.load.image('btnNext','./img/btn_play.png');
         this.load.image('background', './img/background.jpg');
         this.load.image('bar','./img/bar_empty.png');
         this.load.image('bar-progress','./img/bar_progress.png');
