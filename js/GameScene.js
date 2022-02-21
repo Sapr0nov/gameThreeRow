@@ -11,11 +11,23 @@ export default class GameScene extends Phaser.Scene
         this.typesBlock = (data.typesBlock !== void 0) ? data.typesBlock : 5; // number different blocks without bombs 
         this.speed = (data.speed !== void 0) ? data.speed : 10; 
         this.victoryScore = (data.victoryScore !== void 0) ? data.victoryScore : 99; 
-        this.MaxLife = (data.MaxLife !== void 0) ? data.MaxLife : 20; 
-        this.MaxLife = (data.MaxLife !== void 0) ? data.MaxLife : 20; 
-        this.winColor = (data.winColor !== void 0) ? data.winColor : 0;         // 0 air 1 fire 2 water
-        this.isVicory = (data.isVictory !== void 0) ? data.isVicory : () => { return  (this.barsProgress[this.winColor].value  >= this.victoryScore) }
-        this.keys = (data.keys !== void 0) ? data.keys : ['block_air','block_arthropoda','block_demon','block_earth','block_fire','block_flash','block_forest','block_ice','block_lindworm','block_water','bomb','tnt'];
+        this.MaxLife = (data.MaxLife !== void 0) ? data.MaxLife : 20;
+        this.winColor = (data.winColor !== void 0) ? data.winColor : 0;
+        this.keys = (data.keys !== void 0) ? JSON.parse(data.keys) : ['block_air','block_arthropoda','block_demon','block_earth','block_fire','block_flash','block_forest','block_ice','block_lindworm','block_water','bomb','tnt'];
+        this.four = (data.four !== void 0) ? JSON.parse(data.four) : false;
+        this.five = (data.five !== void 0) ? JSON.parse(data.five) : false; 
+        this.isVictory = () => {return (this.barsProgress[this.winColor].value >= this.victoryScore)}
+
+        if (this.victoryScore > 100) {
+            this.victoryScore = 100;
+        }
+
+        if (this.four) {
+            this.keys.push(this.four);
+        }
+        if (this.five) {
+            this.keys.push(this.five);
+        }
     }
 
     preload () {
@@ -112,11 +124,11 @@ export default class GameScene extends Phaser.Scene
         this.noprize = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 3) ,'noprize').setScale(this.scale);
         this.noprize.setVisible(false);
 
-        this.bars = Array(this.typesBlock);
-        this.barsProgress = Array(this.typesBlock);
-        this.barsPreview = Array(this.typesBlock);
+        this.bars = Array(parseInt(this.typesBlock));
+        this.barsProgress = Array(parseInt(this.typesBlock));
+        this.barsPreview = Array(parseInt(this.typesBlock));
 
-        for (let i = 0; i < this.typesBlock; i ++) {
+        for (let i = 0; i < parseInt(this.typesBlock); i ++) {
             this.bars[i] = this.add.image(10 * this.scale, Math.floor(this.game.scale.baseSize.height / 10 + 50 + 40 * i * this.scale) ,'bar').setScale(this.scale);
             this.barsProgress[i] = this.add.image( 10 * this.scale, Math.floor(this.game.scale.baseSize.height / 10 + 50 + 40 * i * this.scale) ,'bar-progress').setScale(this.scale);
             this.barsPreview[i] = this.add.sprite( 10 * this.scale, Math.floor(this.game.scale.baseSize.height / 10 + 44 + 40 * i * this.scale)).play(this.animsBlock[i]).setScale(this.scale / 3.5);
@@ -319,8 +331,14 @@ export default class GameScene extends Phaser.Scene
                 }
 
                 if (line.rand !== void 0 && i === line.rand) {
-                    this.matrix[element.block.row][element.block.col].key = (line.length === 4) ? this.typesBlock : this.typesBlock + 1;
-                    this.matrix[element.block.row][element.block.col].block.play(this.animsBlock[(line.length === 4) ? this.typesBlock : this.typesBlock + 1])
+                    if (line.length === 4 && this.four ) {
+                        this.matrix[element.block.row][element.block.col].key = parseInt(this.typesBlock);
+                    }
+                    if (line.length > 4 && this.five ) {
+                        this.matrix[element.block.row][element.block.col].key = parseInt(this.typesBlock) + 1;
+                    }
+                    this.matrix[element.block.row][element.block.col].block.play(this.animsBlock[this.matrix[element.block.row][element.block.col].key]);
+
                 }else{
                     // get number of type block
                     this.matrix[element.block.row][element.block.col].key = null;                
@@ -343,7 +361,7 @@ export default class GameScene extends Phaser.Scene
                 }
                 
                 // not current block and block = bomb
-                if ((dx !== 0 && dy !== 0) && this.matrix[block.row + dx][block.col + dy].key === this.typesBlock)
+                if ((dx !== 0 && dy !== 0) && this.matrix[block.row + dx][block.col + dy].key === parseInt(this.typesBlock))
                 {
                     // block not in Set
                     if (! this.collapseBlocks.has(this.matrix[block.row + dx][block.col + dy])) {
@@ -352,7 +370,7 @@ export default class GameScene extends Phaser.Scene
                     }
                 }
                 // not current block and block = tnt
-                if (dx !== 0 && dy !== 0 && this.matrix[block.row + dx][block.col + dy].key === this.typesBlock + 1)
+                if (dx !== 0 && dy !== 0 && this.matrix[block.row + dx][block.col + dy].key === parseInt(this.typesBlock) + 1)
                 {
                     // element (block and keys) not in Set
                     if (! this.collapseBlocks.has(this.matrix[block.row + dx][block.col + dy])) {
@@ -372,7 +390,7 @@ export default class GameScene extends Phaser.Scene
     tntBoom (block) {
 
         for (let i = 0; i < this.MaxCol; i ++) {
-            if (i !== block.col && this.matrix[block.row][i].key === this.typesBlock)
+            if (i !== block.col && this.matrix[block.row][i].key === parseInt(this.typesBlock))
             {
                 // block not in Set
                 if (! this.collapseBlocks.has(this.matrix[block.row][i])) {
@@ -380,7 +398,7 @@ export default class GameScene extends Phaser.Scene
                     this.bombBoom(this.matrix[block.row][i].block);
                 }
             }
-            if (i !== block.col && this.matrix[block.row][i] === this.typesBlock + 1)
+            if (i !== block.col && this.matrix[block.row][i] === parseInt(this.typesBlock) + 1)
             {
                 // block not in Set
                 if (! this.collapseBlocks.has(this.matrix[block.row][i])) {
@@ -395,13 +413,13 @@ export default class GameScene extends Phaser.Scene
 
     clicked (element) {
 
-        if (this.matrix[element.row][element.col].key === this.typesBlock )  {
+        if (this.matrix[element.row][element.col].key === parseInt(this.typesBlock) )  {
             this.bombBoom(element);
             this.collapse([this.collapseBlocks]);
             return;
         }
 
-        if (this.matrix[element.row][element.col].key === this.typesBlock + 1 ) {
+        if (this.matrix[element.row][element.col].key === parseInt(this.typesBlock) + 1 ) {
             this.tntBoom(element);
             this.collapse([this.collapseBlocks]);
             return;
@@ -421,7 +439,7 @@ export default class GameScene extends Phaser.Scene
         let key1 = this.animsBlock[this.matrix[el1.row][el1.col].key];
         let key2 = this.animsBlock[this.matrix[el2.row][el2.col].key];
 
-        if (key1 < this.typesBlock && key2 < this.typesBlock) { 
+        if (key1 < parseInt(this.typesBlock) && key2 < parseInt(this.typesBlock)) { 
             el1.play(key1);  
             el2.play(key2);  
         }
@@ -488,7 +506,7 @@ export default class GameScene extends Phaser.Scene
 
 
     newBlock(curRow, curCol, posRow = curRow, posCol = curCol) {
-        let key = Math.floor(Math.random() * (this.typesBlock));
+        let key = Math.floor(Math.random() * (parseInt(this.typesBlock)));
         this.x = this.ofsetX + this.step * posCol;
         this.y = this.ofsetY + this.step * posRow;
         let block = this.add.sprite(this.x, this.y, 'blocks');
@@ -521,7 +539,7 @@ export default class GameScene extends Phaser.Scene
         this.board.on('pointerup', (e) => {
             if (this.isBlocked || !this.firstSelBlock) return;
             // checked click on bomb
-            if (this.matrix[block.row][block.col].key >= this.typesBlock) {
+            if (this.matrix[block.row][block.col].key >= parseInt(this.typesBlock)) {
                 this.clicked(block);
                 return;
             }
@@ -541,7 +559,7 @@ export default class GameScene extends Phaser.Scene
         block.on('pointerup', () => {
             if (this.isBlocked || !this.firstSelBlock) return;
             // checked click on bomb
-            if (this.matrix[block.row][block.col].key >= this.typesBlock) {
+            if (this.matrix[block.row][block.col].key >= parseInt(this.typesBlock)) {
                 this.clicked(block);
                 return;
             }
@@ -585,7 +603,7 @@ export default class GameScene extends Phaser.Scene
 
     addProgress (number, progress) {
         //bomb
-        if (number >= this.typesBlock ) {  return; }
+        if (number >= parseInt(this.typesBlock) ) {  return; }
         
         let newValue = this.barsProgress[number].value + progress;
 
@@ -632,14 +650,13 @@ export default class GameScene extends Phaser.Scene
 
     checkWin() {
         let showCup;
-
-        if (!this.isVicory() && this.lifes.num > 0) {
+        if (!this.isVictory() && this.lifes.num > 0) {
             return false;
         }
 
-        if (this.isVicory()) {
+        if (this.isVictory()) {
             this.currScene++;
-            if (this.currScene > 3 ) { this.currScene = 0 }
+            if (this.currScene > 3 ) { this.currScene = 1 }
             this.cookie.setCookie('currScene', this.currScene,  {secure: true, 'max-age': 360000});
             showCup = this.prize;
         }

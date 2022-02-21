@@ -8,19 +8,20 @@ export default class MainScene extends Phaser.Scene
 
     
     async init (data) {
+        this.loaded = false;
         this.cookie = new Cookies();
         this.currScene = this.cookie.getCookie("currScene")? this.cookie.getCookie("currScene")  : 0;
+        this.cookie.setCookie('currScene', this.currScene,  {secure: true, 'max-age': 360000});
         this.ini = new INIfile();
-
-        this.stages = [];
 
         let pathINIfile ="../stages/" +  this.currScene + ".ini"
 
         let response = await fetch(pathINIfile);
         if (response.ok) {
+            this.loaded = true;
             let data = await response.text();
             this.ini.data = this.ini.parseINIString(data) 
-            this.stages.push(this.ini.data.stage);
+            this.stage = this.ini.data.stage;
             this.dialogs = (this.ini.data.dialogs !== void 0) ? JSON.parse('{ "dialog" : ' + this.ini.data.dialogs.dialog + '}').dialog : ['Как насчет \n случайного раунда?', 'Поехали!'];
         } else {
             console.warn(response)
@@ -34,7 +35,7 @@ export default class MainScene extends Phaser.Scene
         this.load.image('hero', './img/hero.png');
         this.load.image('animal1', './img/animal1.png');
         this.load.image('animal2', './img/animal2.png');
-        this.load.svg('dialog', './img/dialog.svg',  {width: this.game.scale.baseSize.width, height: this.game.scale.baseSize.height / 2});
+        this.load.svg('dialog', './img/dialog.svg',  {width: this.game.scale.baseSize.width * 1.2, height: this.game.scale.baseSize.height });
         
         this.currDialog = 0;
     }
@@ -58,7 +59,6 @@ export default class MainScene extends Phaser.Scene
         this.animal2.setScale(this.scale * 0.45);
         this.dialog = this.add.image(this.game.scale.baseSize.width / 2, this.game.scale.baseSize.height / 2, 'dialog').setScale(this.scale, -this.scale);
         this.dialog.setInteractive( { cursor: 'url(img/pointer.png), pointer' } );
-        this.dialogText = this.add.text(this.game.scale.baseSize.width / 4, this.game.scale.baseSize.height / 2, this.dialogs[this.currDialog], { fontFamily: 'Tahoma, Times, serif', color: 'black', fontSize : '32px' }).setScale(this.scale);
 
         this.dialog.on('pointerdown', () => {
             this.currDialog++;
@@ -68,7 +68,7 @@ export default class MainScene extends Phaser.Scene
                     target: 'gameScene',
                     duration: 1300,
                     launch: true,
-                    data: this.stages[ this.currScene]
+                    data: this.stage
                 })
             }else{
                 this.dialog.setScale(this.dialog.scaleX, -this.dialog.scaleY);
@@ -78,10 +78,11 @@ export default class MainScene extends Phaser.Scene
         })
 
         this.events.on('transitioncomplete', () => { 
-            this.scene.setVisible(true);
+            if (this.loaded) {
+                this.scene.setVisible(true);
+            }
         });
         this.scene.setVisible(false);
-
     }
 
 
@@ -89,6 +90,12 @@ export default class MainScene extends Phaser.Scene
 
         this.deltaTime = new Date().getTime() - this.prevtime;
         this.prevtime += this.deltaTime;
+
+        if (this.loaded) {
+            this.dialogText = this.add.text(this.game.scale.baseSize.width / 5, this.game.scale.baseSize.height / 2, this.dialogs[this.currDialog], { fontFamily: 'Tahoma, Times, serif', color: 'black', fontSize : '32px' }).setScale(this.scale);
+            this.scene.setVisible(true);
+            this.loaded =false;
+        }
 
         this.bgAnimation();
     }
