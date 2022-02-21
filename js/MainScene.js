@@ -14,7 +14,7 @@ export default class MainScene extends Phaser.Scene
         this.cookie.setCookie('currScene', this.currScene,  {secure: true, 'max-age': 360000});
         this.ini = new INIfile();
 
-        let pathINIfile ="../stages/" +  this.currScene + ".ini"
+        let pathINIfile ="stages/" +  this.currScene + ".ini"
 
         let response = await fetch(pathINIfile);
         if (response.ok) {
