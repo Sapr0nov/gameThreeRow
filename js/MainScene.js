@@ -7,10 +7,10 @@ export default class MainScene extends Phaser.Scene
     }
 
     
-    async init (data) {
+    async init () {
         this.loaded = false;
         this.cookie = new Cookies();
-        this.currScene = this.cookie.getCookie("currScene")? this.cookie.getCookie("currScene")  : 0;
+        this.currScene = this.cookie.getCookie("currScene") ? this.cookie.getCookie("currScene") : 0;
         this.cookie.setCookie('currScene', this.currScene,  {secure: true, 'max-age': 360000});
         this.ini = new INIfile();
 
@@ -79,6 +79,7 @@ export default class MainScene extends Phaser.Scene
 
         this.events.on('transitioncomplete', () => { 
             if (this.loaded) {
+                this.dialogText = this.add.text(this.game.scale.baseSize.width / 5, this.game.scale.baseSize.height / 2, this.dialogs[this.currDialog], { fontFamily: 'Tahoma, Times, serif', color: 'black', fontSize : '32px' }).setScale(this.scale);
                 this.scene.setVisible(true);
             }
         });
@@ -90,12 +91,6 @@ export default class MainScene extends Phaser.Scene
 
         this.deltaTime = new Date().getTime() - this.prevtime;
         this.prevtime += this.deltaTime;
-
-        if (this.loaded) {
-            this.dialogText = this.add.text(this.game.scale.baseSize.width / 5, this.game.scale.baseSize.height / 2, this.dialogs[this.currDialog], { fontFamily: 'Tahoma, Times, serif', color: 'black', fontSize : '32px' }).setScale(this.scale);
-            this.scene.setVisible(true);
-            this.loaded =false;
-        }
 
         this.bgAnimation();
     }
