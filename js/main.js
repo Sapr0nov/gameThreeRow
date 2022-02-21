@@ -40,8 +40,4 @@ function init() {
     game.config.widthOrigin = widthOrigin;
     game.config.gameURL ="https:/stacksite.ru/assets/project2/three/";
 
-//    document.querySelector('canvas').addEventListener("click", function() {
-        // Use the final API, the polyfill will call the mozRequestFullScreen or webKitRequestFullScreen for you
-//        document.querySelector('canvas').requestFullscreen();
-//    }, false);
 }

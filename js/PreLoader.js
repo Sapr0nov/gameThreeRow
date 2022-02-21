@@ -7,6 +7,11 @@ export default class PreLoader extends Phaser.Scene
         super({key: 'preLoader'});
     }
 
+    init(data) {
+        this.startTimeout = 0;
+        if (data.delay) { this.startTimeout = 1500 }
+    }
+
     preload () {
         this.scale = Math.floor ((1000 * this.game.canvas.width) / this.game.config.widthOrigin) / 1000;
         
@@ -224,6 +229,14 @@ export default class PreLoader extends Phaser.Scene
         this.chat.chatInit(this.player.name);
         this.lastCheck = new Date();
         this.lastCheck.setDate( this.lastCheck.getDate() - 1);
+
+        this.events.on('transitioncomplete', () => { 
+                this.scene.setVisible(true);
+        });
+        setTimeout( () => {
+            this.scene.setVisible(true);
+        } , this.startTimeout);
+        this.scene.setVisible(false);
     }
     
     update() {

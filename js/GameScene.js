@@ -6,6 +6,8 @@ export default class GameScene extends Phaser.Scene
     }
 
     init(data) {
+        this.data = data;
+        this.startTimeout = 1500;
         this.MaxRow = (data.MaxRow !== void 0) ? data.MaxRow : 5; 
         this.MaxCol = (data.MaxCol !== void 0) ? data.MaxCol : 7; 
         this.typesBlock = (data.typesBlock !== void 0) ? data.typesBlock : 5; // number different blocks without bombs 
@@ -33,12 +35,15 @@ export default class GameScene extends Phaser.Scene
     preload () {
         let width = this.game.canvas.width;
         let height = this.game.canvas.height;
-
         this.load.atlas('blocks', './img/blocks.png', './img/blocks.json');
         this.load.atlas('energy', './img/energy.png', './img/energy.json');
 
         this.load.image('blockSelect','./img/blockSelect.png');
         this.load.image('board','./img/board.png');
+        this.load.image('popup','./img/popup.png');
+        this.load.image('btnReply','./img/btn_fullScr.png');
+        this.load.image('btnMenu','./img/btn_chat.png');
+        this.load.image('btnNext','./img/btn_send.png');
         this.load.image('background', './img/background.jpg');
         this.load.image('bar','./img/bar_empty.png');
         this.load.image('bar-progress','./img/bar_progress.png');
@@ -65,12 +70,22 @@ export default class GameScene extends Phaser.Scene
         }
 
         this.events.on('transitioncomplete', () => { 
+            if (this.scene.settings.visible) { return }
             this.scene.setVisible(true);
             this.normalize();
             this.isBlocked = false;
             this.gameScore = 0;
             this.bars.forEach((bars, i) => this.resetProgress(i) );
         });
+        setTimeout(() => { 
+            if (this.scene.settings.visible) { return }
+            this.scene.setVisible(true);
+            this.normalize();
+            this.isBlocked = false;
+            this.gameScore = 0;
+            this.bars.forEach((bars, i) => this.resetProgress(i) );
+        }, this.startTimeout);
+
         this.scene.setVisible(false);
 
     }
@@ -94,7 +109,7 @@ export default class GameScene extends Phaser.Scene
         });
 
         this.cookie = new Cookies();
-        this.currScene = this.cookie.getCookie("currScene")? this.cookie.getCookie("currScene")  : 0;
+        this.currScene = this.cookie.getCookie("currScene") ? this.cookie.getCookie("currScene") : 0;
 
         this.animsBlock = [];
         this.energy = this.anims.create({ key: 'energy', delay :0, hideOnComplete: true, frames: this.anims.generateFrameNames('energy', { prefix: 'energy_', end: 15, zeroPad: 4 }), repeat: 0 });
@@ -104,10 +119,14 @@ export default class GameScene extends Phaser.Scene
         })
 
         this.bg = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 2) ,'background').setScale(this.scale);
+        this.bg.isHide = false;
+        this.bg.dalpha = -0.001;
+
         this.deskLife = this.add.image(140 * this.scale, 70 * this.scale, 'desk-life').setScale(this.scale);
         this.deskScore = this.add.image(this.game.scale.baseSize.width - 140 * this.scale, 70 * this.scale, 'desk-score').setScale(-this.scale, this.scale);
         this.lifes = this.add.text(210 * this.scale, 64 * this.scale, '0000', { fontFamily: 'Tahoma, Times, serif', fontSize : '32px' }).setScale(this.scale);
         this.score = this.add.text(this.game.scale.baseSize.width - 230 * this.scale, 64 * this.scale, '0000', { fontFamily: 'Tahoma, Times, serif', fontSize : '32px'}).setScale(this.scale);
+        this.UI = [this.deskLife, this.deskScore, this.lifes, this.score];
 
         this.lifes.num = this.MaxLife;
 
@@ -119,11 +138,35 @@ export default class GameScene extends Phaser.Scene
         this.board.setAlpha(0.5);
         this.board.blocks = [];
 
-        this.prize = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 3) ,'prize').setScale(this.scale);
-        this.prize.setVisible(false);
-        this.noprize = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 3) ,'noprize').setScale(this.scale);
-        this.noprize.setVisible(false);
+        this.popupUI = {};
+        this.popupUI.elements = [];
+        this.popupUI.bg = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 2) ,'popup').setScale(this.scale);
+        this.popupUI.prize = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 3) ,'prize').setScale(this.scale);
+        this.popupUI.noprize = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 3) ,'noprize').setScale(this.scale);
+        this.popupUI.btnReply = this.add.image( Math.floor(this.game.scale.baseSize.width / 2 + 150 * this.scale), Math.floor(this.game.scale.baseSize.height / 3 * 2 + 30 * this.scale) ,'btnReply').setScale(this.scale);
+        this.popupUI.btnMenu = this.add.image( Math.floor(this.game.scale.baseSize.width / 2), Math.floor(this.game.scale.baseSize.height / 3 * 2 + 30 * this.scale) ,'btnMenu').setScale(this.scale);
+        this.popupUI.btnNext = this.add.image( Math.floor(this.game.scale.baseSize.width / 2 - 150 * this.scale), Math.floor(this.game.scale.baseSize.height / 3 * 2 + 30 * this.scale) ,'btnNext').setScale(this.scale);
+        this.popupUI.elements.push(this.popupUI.bg, this.popupUI.prize, this.popupUI.noprize, this.popupUI.btnReply, this.popupUI.btnMenu, this.popupUI.btnNext );
+        this.popupUI.elements.forEach(el => el.setVisible(false));
 
+        [this.popupUI.btnReply, this.popupUI.btnMenu, this.popupUI.btnNext].forEach (element => {
+            element.setInteractive( { cursor: 'url(img/pointer.png), pointer' } );    
+        }) 
+
+        this.popupUI.btnReply.on('pointerdown', () => {
+            this.bg.isHide = true;
+            this.currScene = (this.currScene > 0) ? this.currScene - 1 : 3;
+            this.cookie.setCookie('currScene', this.currScene, {secure: true, 'max-age': 360000});
+            this.scene.restart(this.data);
+        })
+        this.popupUI.btnMenu.on('pointerdown', () => {
+            this.switchScene();
+        })
+        this.popupUI.btnNext.on('pointerdown', () => {
+            this.nextScene();
+        })
+
+        
         this.bars = Array(parseInt(this.typesBlock));
         this.barsProgress = Array(parseInt(this.typesBlock));
         this.barsPreview = Array(parseInt(this.typesBlock));
@@ -175,6 +218,8 @@ export default class GameScene extends Phaser.Scene
         }else{
             this.board.blocks.forEach (block => { block.tint = 0xffffff; });
         }
+
+        this.bgAnimation();
     }
 
 
@@ -649,7 +694,8 @@ export default class GameScene extends Phaser.Scene
 
 
     checkWin() {
-        let showCup;
+        let hideCup;
+        let hideBtn;
         if (!this.isVictory() && this.lifes.num > 0) {
             return false;
         }
@@ -658,38 +704,48 @@ export default class GameScene extends Phaser.Scene
             this.currScene++;
             if (this.currScene > 3 ) { this.currScene = 1 }
             this.cookie.setCookie('currScene', this.currScene,  {secure: true, 'max-age': 360000});
-            showCup = this.prize;
+            hideCup = this.popupUI.noprize;
         }
 
         if (this.lifes.num <= 0) {
-            showCup = this.noprize;
+            hideCup = this.popupUI.prize;
+            hideBtn = this.popupUI.btnNext;
         }
 
         this.matrix.forEach(rows => rows.forEach(el => el.block.setVisible(false)));
-        this.bg.setAlpha(0.3);
         this.board.setVisible(false);
         this.barsProgress.forEach( bar => { (bar.setVisible(false) ) })
         this.bars.forEach( bar => { (bar.setVisible(false) ) })
 
-        showCup.setVisible(true);
-        showCup.setInteractive( { cursor: 'url(img/pointer.png), pointer' });
-        showCup.on('pointerdown', () => {
-            this.switchScene();
-        })
-        
+        this.popupUI.elements.forEach(el => { 
+            if (el !== hideCup) 
+            { 
+                el.setVisible(true); 
+            }
+        });
+        hideBtn && hideBtn.setVisible(false);
+
         return true;
     }
 
 
     switchScene () {
-        this.prize.disableInteractive();
-        this.prize.setRotation(0.1);
         this.bg.isHide = true;
-
         this.scene.transition({
             target: 'preLoader',
             duration: 1300,
             init: true,
+            data: {"delay" : true}
+        })
+    }
+
+
+    nextScene () {
+        this.bg.isHide = true;
+        this.scene.transition({
+            target: 'mainScene',
+            duration: 1300,
+            init: true
         })
     }
 
@@ -731,7 +787,6 @@ export default class GameScene extends Phaser.Scene
     }
 
 
-
     copyMatrix (matrix) {
         const result = [];
         for (let i = 0; i < matrix.length; i++) {
@@ -765,6 +820,19 @@ export default class GameScene extends Phaser.Scene
             this.isBlocked = false;
         }else{
             this.collapse(mathes);
+        }
+    }
+
+    
+    bgAnimation() {
+        if (this.bg.isHide && this.bg.alpha > 0) {
+            this.bg.setAlpha(this.bg.alpha + this.bg.dalpha * this.deltaTime);
+            this.popupUI.elements.forEach(el => { el.setAlpha(this.bg.alpha) })
+            this.board.blocks.forEach(el => { el.setAlpha(this.bg.alpha) })
+            this.bars.forEach(el => { el.setAlpha(this.bg.alpha) })
+            this.barsProgress.forEach(el => { el.setAlpha(this.bg.alpha) })
+            this.barsPreview.forEach(el => { el.setAlpha(this.bg.alpha) })
+            this.UI.forEach(el => { el.setAlpha(this.bg.alpha) })
         }
     }
 
