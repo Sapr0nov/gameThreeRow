@@ -28,8 +28,8 @@ export default class PreLoader extends Phaser.Scene
         this.load.image('chat_panel', './img/chat_panel.png');
         
         this.player = {};
-        this.gameVersion = "0.000.003";
-        this.dialogs = [['Привет! Откуда ты?', 'Здравствуйте, \r\n\ я путешественник! \r\n\ из Пандаленда', 'Ты во время,\r\n\ помоги нам собрать\r\n\ воды!', 'Конечно! Вперед!'],['Спасибо тебе Панда, \r\n Давай теперь соберем \r\n немного огонька?', 'Конечно, \r\n вперед за теплом!']]; 
+        this.gameVersion = "0.001.001";
+        this.dialogs = [['Привет! Откуда ты?', 'Здравствуйте, \n я путешественник! \n из Пандаленда', 'Ты во время,\n помоги нам собрать\n воды!', 'Конечно! Вперед!'],['Спасибо тебе Панда, \n Давай теперь соберем \n немного огонька?', 'Конечно, \n вперед за теплом!']]; 
         this.currScene = 0;
     }
 
@@ -208,7 +208,6 @@ export default class PreLoader extends Phaser.Scene
         this.chatUI.sendBtn.on('pointerdown', () => {
             this.htmlInput2.style.display = "none";
             this.chatUI.input.text = this.htmlInput2.value;
-            // send msg THEN clear TODO 
             this.showHistory(this.htmlInput2.value);
             let msg = this.htmlInput2.value;
             this.htmlInput2.value = '';
@@ -303,24 +302,24 @@ export default class PreLoader extends Phaser.Scene
             this.chatCamera.setVisible(true);
             console.log(msg);
             let time = msg.time.split(" ")[1].substring(0,5);
-            let addString = "[" + time + "] " + msg.firstname + ": " + msg.body + " \r\n";
+            let addString = "[" + time + "] " + msg.firstname + ": " + msg.body + " \n";
             let result = "";
 
             if (addString.length > 27) {
                 for (let i = 0; i <= Math.floor(addString.length / 27); i ++) {
-                    result += addString.substring(27 * i, 27 * (i + 1) ) + "\r\n";
+                    result += addString.substring(27 * i, 27 * (i + 1) ) + "\n";
                 }
             }else{
-                result = addString + " \r\n";;
+                result = addString + " \n";
             }
             this.chatUI.history.text += result;
 
             if (this.chatUI.history.text.length > 11000) {
                 this.chatCamera.scrollY = 0;
-                this.chatUI.history.text = "\r\n";
+                this.chatUI.history.text = "\n";
             }
             
-            this.chatCamera.scrollY = this.chatUI.history.text.match(/[\r\n]/g).length * 11.75 - 375;
+            this.chatCamera.scrollY = this.chatUI.history.text.match(/[\n]/g).length * 11.7 - 390;
         }
     }
 }
