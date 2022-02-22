@@ -58,7 +58,7 @@ export default class PreLoader extends Phaser.Scene
         this.earR.play(this.earRAnim);
         this.earL.play(this.earLAnim);
 
-        this.startBtn = this.add.image(this.game.scale.baseSize.width / 2, Math.floor(this.game.scale.baseSize.height / 3 ) ,'play');
+        this.startBtn = this.add.image(this.game.scale.baseSize.width / 2, Math.floor(this.game.scale.baseSize.height / 3 ) ,'play').setScale(this.scale);
         this.startBtn.setAlpha(1);
         this.startBtn.dScale = 0.0005;
 
@@ -319,7 +319,7 @@ export default class PreLoader extends Phaser.Scene
                 this.chatUI.history.text = "\n";
             }
             
-            this.chatCamera.scrollY = this.chatUI.history.text.match(/[\n]/g).length * 11.7 - 390;
+            this.chatCamera.scrollY = this.chatUI.history.text.match(/[\n]/g).length * 11.7 * this.scale  + 20 * this.scale;
         }
     }
 }
