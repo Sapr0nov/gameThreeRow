@@ -18,17 +18,17 @@ export default class PreLoader extends Phaser.Scene
         this.load.image('bg_preloader', './img/bg_preloader.jpg');
         this.load.atlas('earRight', './img/earRight.png', './img/earRight.json');
         this.load.atlas('earLeft', './img/earLeft.png', './img/earLeft.json');
-        this.load.image('play', './img/play.png');
         this.load.svg('nameBoard', './img/desk_empty.svg',  {width:300, height:138});
 
+        this.load.image('play', './img/play.png');
         this.load.image('btn_chat', './img/btn_chat.png');
         this.load.image('btn_send', './img/btn_send.png');
         this.load.image('btn_fullScr', './img/btn_fullScr.png');
-            this.load.image('chat_board', './img/chat_board.png');
+        this.load.image('chat_board', './img/chat_board.png');
         this.load.image('chat_panel', './img/chat_panel.png');
         
         this.player = {};
-        this.gameVersion = "0.001.001";
+        this.gameVersion = "0.001.002";
         this.dialogs = [['Привет! Откуда ты?', 'Здравствуйте, \n я путешественник! \n из Пандаленда', 'Ты во время,\n помоги нам собрать\n воды!', 'Конечно! Вперед!'],['Спасибо тебе Панда, \n Давай теперь соберем \n немного огонька?', 'Конечно, \n вперед за теплом!']]; 
         this.currScene = 0;
     }
@@ -58,7 +58,7 @@ export default class PreLoader extends Phaser.Scene
         this.earR.play(this.earRAnim);
         this.earL.play(this.earLAnim);
 
-        this.startBtn = this.add.image(this.game.scale.baseSize.width / 2, Math.floor(this.game.scale.baseSize.height / 3 ) ,'play').setScale(this.scale);
+        this.startBtn = this.add.image(this.game.scale.baseSize.width / 2, Math.floor(this.game.scale.baseSize.height / 3 ) ,'play');
         this.startBtn.setAlpha(1);
         this.startBtn.dScale = 0.0005;
 
@@ -87,7 +87,7 @@ export default class PreLoader extends Phaser.Scene
             this.setRotation(-0.1);
         })
         
-        this.startBtn.setScale(0.4,0.4);
+        this.startBtn.setScale(0.6* this.scale);
         this.startBtn.setRotation(-0.1);
 
         this.add.text(2, 2, 'version: ' + this.gameVersion, { fontFamily: 'Tahoma, Times, serif', color: "#000000", fontSize : '10px' }).setScale(this.scale);
