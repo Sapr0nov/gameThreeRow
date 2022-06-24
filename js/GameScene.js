@@ -384,8 +384,10 @@ export default class GameScene extends Phaser.Scene
                     if (line.length > 4 && this.five ) {
                         this.matrix[element.block.row][element.block.col].key = parseInt(this.typesBlock) + 1;
                     }
-                    this.matrix[element.block.row][element.block.col].block.play(this.animsBlock[this.matrix[element.block.row][element.block.col].key]);
-
+                    if (this.matrix[element.block.row][element.block.col] && this.matrix[element.block.row][element.block.col].block) {
+                        this.matrix[element.block.row][element.block.col].block.play(this.animsBlock[this.matrix[element.block.row][element.block.col].key]);
+                    }
+                    
                 }else{
                     // get number of type block
                     this.matrix[element.block.row][element.block.col].key = null;                
