@@ -75,7 +75,9 @@ export default class GameScene extends Phaser.Scene
             this.normalize();
             this.isBlocked = false;
             this.gameScore = 0;
-            this.bars.forEach((bars, i) => this.resetProgress(i) );
+            if (this.bars) {
+                this.bars.forEach((bars, i) => this.resetProgress(i) );
+            }
         });
         setTimeout(() => { 
             if (this.scene.settings.visible) { return }
