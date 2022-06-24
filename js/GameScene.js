@@ -841,7 +841,7 @@ export default class GameScene extends Phaser.Scene
 
         for ( let curRow = 0; curRow < this.MaxRow; curRow ++) {
             for ( let curCol = 0; curCol < this.MaxCol; curCol ++) {
-                if (this.matrix[curRow][curCol].block && this.matrix[curRow][curCol].block) {
+                if (this.matrix[curRow][curCol] && this.matrix[curRow][curCol].block) {
                     this.matrix[curRow][curCol].block.col = curCol;
                     this.matrix[curRow][curCol].block.row = curRow;
                     this.matrix[curRow][curCol].block.x = this.ofsetX + this.step * curCol;
